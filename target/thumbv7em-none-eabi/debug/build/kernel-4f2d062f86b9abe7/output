@@ -1,0 +1,2 @@
+cargo:rustc-link-search=/home/alberto/Desktop/PiOS/kernel/target/thumbv7em-none-eabi/debug/build/kernel-4f2d062f86b9abe7/out
+cargo:rerun-if-changed=memory.x
