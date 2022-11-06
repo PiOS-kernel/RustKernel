@@ -10,13 +10,13 @@ pub struct MutexGuard<'a, T> {
 }
 
 impl<T> Mutex<T> {
-    pub fn new(inner: T) -> Self {
+    pub const fn new(inner: T) -> Self {
         Self {inner: inner}
     }
 
     pub fn lock(&self) -> MutexGuard<T> {
         unsafe {
-            asm!("cpsid"); // Disable interrupts
+            asm!("dsb"); // Disable interrupts
             MutexGuard::new(self)
         } 
     }
@@ -44,7 +44,7 @@ impl<T> DerefMut for MutexGuard<'_, T> {
 
 impl<T> Drop for MutexGuard<'_, T> {
     fn drop(&mut self) {
-        unsafe{ asm!("cpsie") }; // Enable interrupts
+        unsafe{ asm!("isb") }; // Enable interrupts
     }
 }
 
