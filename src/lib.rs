@@ -4,6 +4,7 @@
 extern crate alloc;
 
 pub mod allocator;
+pub mod mutex;
 
 // The word size for the architecture. Cortex-M4 works on 32-bit words.
 type Word = u32;
