@@ -81,21 +81,15 @@ impl Queue {
             None                        //return None if the queue was already empty
         }
     }
-/*
-    pub fn print (&mut self) {
-        if self.empty(){
 
-        }else{
-            let printer: TcbBlock;
-            printer = self.head;
-            while printer.is_some() {
-                println!("node: {}", printer.unwrap().priority);
-                printer = printer.unwrap().next;
-            }
-        }
-        
+    pub fn schedule(q : &Queue) {
+
+        if !q.empty() {
+            let task = q.dequeue();
+            q.enqueue(task.unwrap());
+        } 
     }
-*/
+
 }
 /*  just a test
 
