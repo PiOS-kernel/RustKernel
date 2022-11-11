@@ -1,0 +1,2 @@
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=c:\Users\user\OneDrive\Desktop\Pios\Kernel\target\thumbv7em-none-eabi\debug\build\typenum-5bb26c0161feb33f\out\consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=c:\Users\user\OneDrive\Desktop\Pios\Kernel\target\thumbv7em-none-eabi\debug\build\typenum-5bb26c0161feb33f\out\op.rs
