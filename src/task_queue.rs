@@ -30,7 +30,7 @@ impl TaskTCB {
 //struct of a queue of TaskTCB
 struct Queue {
     head: TcbBlock,
-    tail: *mut task::TaskTCB,
+    tail: *mut TaskTCB,
 }
 
 impl Queue {
