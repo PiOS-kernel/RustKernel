@@ -1,13 +1,16 @@
 use std::io;
 use std::ptr;
 
-//global variables
-pub const MAX_PRIORITY: u8 = 10;                    //max priority and size of the priority queues array
+//file to be reviewed, probably need to split it into modules, probably need to address some details
 
 //defined type 
 type TcbBlock = Option<Box<TaskTCB>>;           //used as a reference to a Task_TCB 
 const STACK_SIZE: usize = 1024;                         //size of the stack for every task
 type StPointer = Option<Box<usize>>;            //stack pointer
+
+//global variables
+pub const MAX_PRIORITY: u8 = 10;                    //max priority and size of the priority queues array
+static mut running: TcbBlock;                       //variable for the running task.. best way to store it?
 
 //definition of the Task Control Block 
 
@@ -82,17 +85,20 @@ impl Queue {
         }
     }
 
-    pub fn schedule(q : &Queue) {
+    // scheduling function... rather simple for now considering only one queue and never ending tasks
+    pub fn schedule(q : &Queue) {    
 
         if !q.empty() {
-            let task = q.dequeue();
+            let task = q.dequeue();             //take the first tasks in the queue and place it in last 
+            //context_switch()                  //still need to implement the context switch part 
             q.enqueue(task.unwrap());
         } 
     }
 
 }
-/*  just a test
 
+
+/*  just a test
 
 fn main(){
 
