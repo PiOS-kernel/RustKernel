@@ -1,4 +1,5 @@
 use core::ptr;
+use alloc::boxed::Box;
 
 //file to be reviewed, probably need to split it into modules, probably need to address some details
 
@@ -9,7 +10,7 @@ type StPointer = Option<Box<usize>>;            //stack pointer
 
 //global variables
 pub const MAX_PRIORITY: u8 = 10;                    //max priority and size of the priority queues array
-static mut running: TcbBlock;                       //variable for the running task.. best way to store it?
+static mut RUNNING: TcbBlock = None;                       //variable for the running task.. best way to store it?
 
 //definition of the Task Control Block 
 
@@ -25,7 +26,7 @@ impl TaskTCB {
     //constructor for a TaskTCB that return an instance of a TaskTCB 
     //with the associating the parameters to the corresponding fields
     pub fn new (n: TcbBlock, p: u8) -> Self{    
-        Self { next: n, priority: p, stp: 0, stack: [u8; STACK_SIZE] }
+        Self { next: n, priority: p, stp: 0, stack: [0; STACK_SIZE] }
     }
 }
 
@@ -46,7 +47,7 @@ impl Queue {
     }
 
     //return true if the queue is empty
-    pub fn empty (&mut self) -> bool {
+    pub fn empty (& self) -> bool {
         self.head.is_none()
     }
 
@@ -55,11 +56,9 @@ impl Queue {
         let mut new_tail = Box::new(block);       //create a new Box<TaskTCB> pointing to the new element to add
         let tail_ptr: *mut _ = &mut *new_tail;    //create raw pointer to the new element just created
 
-        if self.empty(){
-            println!("{} is enqueued",new_tail.priority);       //if the queue is empty add the element in the head
+        if self.empty(){      //if the queue is empty add the element in the head
             self.head = Some(new_tail);
         } else {
-            println!("{} is enqueued",new_tail.priority);
             unsafe {                                            //if it is not empty add the elemente in the tail.next
                 (*self.tail).next = Some(new_tail);
             }
@@ -76,16 +75,14 @@ impl Queue {
                 }
                 None => self.tail = ptr::null_mut(),            //shift the head to the current head.next and update the tail if   
             }                                                   //it is the last element
-            hprintln!("{} is dequeued", old_head.priority);
             Some(*old_head)              //return the popped element
         } else {
-            hprintln!("the queue is empty");
             None                        //return None if the queue was already empty
         }
     }
 
     // scheduling function... rather simple for now considering only one queue and never ending tasks
-    pub fn schedule(q : &Queue) {    
+    pub fn schedule(q : &mut Queue) {    
 
         if !q.empty() {
             let task = q.dequeue();             //take the first tasks in the queue and place it in last 
