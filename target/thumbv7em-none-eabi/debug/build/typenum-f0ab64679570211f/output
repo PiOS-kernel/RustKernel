@@ -1,2 +1,0 @@
-cargo:rustc-env=TYPENUM_BUILD_CONSTS=/home/alberto/Desktop/PiOS/kernel/target/thumbv7em-none-eabi/debug/build/typenum-f0ab64679570211f/out/consts.rs
-cargo:rustc-env=TYPENUM_BUILD_OP=/home/alberto/Desktop/PiOS/kernel/target/thumbv7em-none-eabi/debug/build/typenum-f0ab64679570211f/out/op.rs
