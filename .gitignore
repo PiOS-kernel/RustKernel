@@ -1,5 +1,5 @@
 target/**
 .cortex-debug.registers.state.json
-target/.rustc_info.json
+target
 *.exe
 *.pdb
