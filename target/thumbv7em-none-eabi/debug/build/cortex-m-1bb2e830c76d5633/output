@@ -1,0 +1,5 @@
+cargo:rustc-link-lib=static=cortex-m
+cargo:rustc-link-search=c:\Users\user\OneDrive\Desktop\Pios\Kernel\target\thumbv7em-none-eabi\debug\build\cortex-m-1bb2e830c76d5633\out
+cargo:rustc-cfg=cortex_m
+cargo:rustc-cfg=armv7m
+cargo:rustc-cfg=armv7em
