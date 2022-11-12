@@ -1,0 +1,10 @@
+/home/alberto/Desktop/PiOS/kernel/target/thumbv7em-none-eabi/debug/deps/cortex_m_semihosting-bfbf6d415b2c797d.rmeta: /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/lib.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/macros.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/debug.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/export.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/hio.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/nr.rs
+
+/home/alberto/Desktop/PiOS/kernel/target/thumbv7em-none-eabi/debug/deps/cortex_m_semihosting-bfbf6d415b2c797d.d: /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/lib.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/macros.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/debug.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/export.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/hio.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/nr.rs
+
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/lib.rs:
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/macros.rs:
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/debug.rs:
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/export.rs:
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/hio.rs:
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/cortex-m-semihosting-0.3.7/src/nr.rs:

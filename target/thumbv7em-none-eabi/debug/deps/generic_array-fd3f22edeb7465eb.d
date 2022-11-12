@@ -1,0 +1,11 @@
+/home/alberto/Desktop/PiOS/kernel/target/thumbv7em-none-eabi/debug/deps/generic_array-fd3f22edeb7465eb.rmeta: /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/lib.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/hex.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/impls.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/arr.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/functional.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/iter.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/sequence.rs
+
+/home/alberto/Desktop/PiOS/kernel/target/thumbv7em-none-eabi/debug/deps/generic_array-fd3f22edeb7465eb.d: /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/lib.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/hex.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/impls.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/arr.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/functional.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/iter.rs /home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/sequence.rs
+
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/lib.rs:
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/hex.rs:
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/impls.rs:
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/arr.rs:
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/functional.rs:
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/iter.rs:
+/home/alberto/.cargo/registry/src/github.com-1ecc6299db9ec823/generic-array-0.13.3/src/sequence.rs:
