@@ -9,7 +9,7 @@ runner = "qemu-system-arm -cpu cortex-m4 -machine lm3s6965evb -nographic -semiho
 # runner = "gdb -q -x openocd.gdb"
 
 rustflags = [
-  # "-C", "linker=arm-none-eabi-ld",
+  "-C", "linker=arm-none-eabi-ld",
   "-C", "link-arg=-Tlink.x",
   "-C", "link-arg=-Tdefmt.x",
   # This is needed if your flash or ram addresses are not aligned to 0x10000 in memory.x
