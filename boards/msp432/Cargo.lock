@@ -94,6 +94,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "cortex-m4"
+version = "0.1.0"
+dependencies = [
+ "cortex-m 0.6.7",
+ "kernel",
+]
+
+[[package]]
 name = "embedded-hal"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -134,12 +142,6 @@ dependencies = [
 [[package]]
 name = "kernel"
 version = "0.1.0"
-dependencies = [
- "cortex-m 0.6.7",
- "cortex-m-rt",
- "cortex-m-semihosting",
- "panic-halt",
-]
 
 [[package]]
 name = "nb"
@@ -161,6 +163,18 @@ name = "panic-halt"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de96540e0ebde571dc55c73d60ef407c653844e6f9a1e2fdbd40c07b9252d812"
+
+[[package]]
+name = "pios"
+version = "0.1.0"
+dependencies = [
+ "cortex-m 0.6.7",
+ "cortex-m-rt",
+ "cortex-m-semihosting",
+ "cortex-m4",
+ "kernel",
+ "panic-halt",
+]
 
 [[package]]
 name = "proc-macro2"
