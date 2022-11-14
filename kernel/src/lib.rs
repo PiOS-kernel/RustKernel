@@ -1,13 +1,16 @@
 #![no_std]
 #![feature(const_mut_refs)]
 #![feature(alloc_error_handler)]
+#![feature(asm_const)]
 
 extern crate alloc;
 pub mod allocator;
 pub mod mutex;
 pub mod task;
+pub mod syscalls;
+pub mod utility;
 use allocator::LockedHeap;
-use task::Queue;
+use task::LockedQueue;
 use panic_halt as _;
 
 // The word size for the architecture. Cortex-M4 works on 32-bit words.
@@ -22,4 +25,4 @@ pub const HEAP_SIZE: usize = 0x8000; // 32KB
 pub static HEAP: LockedHeap = LockedHeap::new();
 
 // The tasks queue
-pub static TASKS_QUEUE: Queue = Queue::new();
+pub static TASKS_QUEUE: LockedQueue = LockedQueue::new();
