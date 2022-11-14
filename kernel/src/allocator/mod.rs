@@ -8,7 +8,7 @@ const HEAP_SEG_HEADER_SIZE: usize = mem::size_of::<HeapSegment>();
 
 type SegmentLink = Option<&'static mut HeapSegment>;
 
-pub struct HeapSegment {
+pub(crate) struct HeapSegment {
     size: usize,
     next: SegmentLink,
 }
