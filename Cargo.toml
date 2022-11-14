@@ -1,5 +1,5 @@
 [package]
-name = "kernel"
+name = "pios_app"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,7 +9,7 @@ edition = "2021"
 cortex-m = { version = "0.7", features = ["critical-section-single-core"] }
 cortex-m-rt = "0.7.0"
 panic-halt = "0.2.0"
+kernel = { path = "kernel" }
 
-[lib]
-name = "pios"
-crate-type = ["staticlib"]
+[dev-dependencies]
+cortex-m-semihosting = "0.3.3"

@@ -1,5 +1,6 @@
 use core::ptr;
 use alloc::boxed::Box;
+use core::marker::Sync;
 
 //file to be reviewed, probably need to split it into modules, probably need to address some details
 
@@ -14,7 +15,7 @@ static mut RUNNING: TcbBlock = None;                       //variable for the ru
 
 //definition of the Task Control Block 
 
-struct TaskTCB {
+pub struct TaskTCB {
     next: TcbBlock,                     //reference to the next Task_TCB
     priority: u8,                       //priority of the task
     stp: usize,                         //stack pointer
@@ -31,7 +32,7 @@ impl TaskTCB {
 }
 
 //struct of a queue of TaskTCB
-struct Queue {
+pub struct Queue {
     head: TcbBlock,
     tail: *mut TaskTCB,
 }
@@ -39,7 +40,7 @@ struct Queue {
 impl Queue {
     
     //initialize the queue with both head and tail None
-    pub fn new () -> Self{
+    pub const fn new () -> Self{
         Self {
             head: None,
             tail: ptr::null_mut(),
@@ -92,6 +93,8 @@ impl Queue {
     }
 
 }
+
+unsafe impl Sync for Queue {}
 
 
 /*  just a test

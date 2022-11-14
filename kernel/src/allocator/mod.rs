@@ -1,5 +1,8 @@
 use core::mem;
-use crate::mutex::Mux;
+use crate::mutex::MutexGuard;
+
+use super::Word;
+use super::mutex::Mutex;
 
 const HEAP_SEG_HEADER_SIZE: usize = mem::size_of::<HeapSegment>();
 
@@ -11,19 +14,34 @@ pub struct HeapSegment {
 }
 
 pub struct Heap {
-    mux: &'static dyn Mux<Wrapped = Heap>,
     head: SegmentLink,
 }
 
-impl Heap {
-    pub const fn new(mux: &'static dyn Mux<Wrapped = Heap>) -> Self {
-        Self { mux: mux, head: None }
+pub struct LockedHeap {
+    heap: Mutex<Heap>,
+}
+
+impl LockedHeap {
+    pub const fn new() -> Self {
+        Self { heap: Mutex::new(Heap::new()) }
     }
 
-    fn init(&mut self, start_address: usize, size: usize) {
+    pub fn lock(&self) -> MutexGuard<'_, Heap> {
+        self.heap.lock()
+    }
+
+    pub fn init(&self, start_address: Word, size: usize) {
+        self.lock().add_free_segment(start_address, size);
+    } 
+}
+
+impl Heap {
+    const fn new() -> Self {
+        Self { head: None }
+    }
+    fn init(&mut self, start_address: Word, size: usize) {
         self.add_free_segment(start_address, size);
     }
-
     fn allocate_segment(self: &mut Self, size: usize) -> Option<*mut u8> {
         if self.head.is_none() {
             return None;
@@ -61,13 +79,11 @@ impl Heap {
         self.compaction();
         Some(next.end_address() as *mut u8)
     }
-
-    fn free_segment(self: &mut Self, start_address: usize, size: usize) {
+    fn free_segment(self: &mut Self, start_address: Word, size: usize) {
         self.add_free_segment(start_address, size + HEAP_SEG_HEADER_SIZE);
         self.compaction();
     }
-
-    fn add_free_segment(self: &mut Self, address: usize, size: usize) {
+    fn add_free_segment(self: &mut Self, address: Word, size: usize) {
         assert!(size > 0);
         
         let mut new_seg = unsafe{Self::init_segment(HeapSegment::new(size - HEAP_SEG_HEADER_SIZE), address)};
@@ -96,7 +112,6 @@ impl Heap {
         }
         cursor.next = Some(new_seg);
     }
-
     fn compaction(self: &mut Self) {
         if self.head.is_none() {
             return;
@@ -111,7 +126,7 @@ impl Heap {
                 }
                 Some(next) => {
                     if next.start_address()
-                        == node_start + (HEAP_SEG_HEADER_SIZE + cursor.size) as usize
+                        == node_start + (HEAP_SEG_HEADER_SIZE + cursor.size) as Word
                     {
                         cursor.size = cursor.size + HEAP_SEG_HEADER_SIZE + next.size;
                         cursor.next = next.next.take();
@@ -126,15 +141,13 @@ impl Heap {
             }
         }
     }
-
-    unsafe fn init_segment(seg: HeapSegment, address: usize) -> &'static mut HeapSegment {
+    unsafe fn init_segment(seg: HeapSegment, address: Word) -> &'static mut HeapSegment {
         let address_ptr = address as *mut HeapSegment;
         address_ptr.write(seg);
         &mut *address_ptr
     }
-    
     fn trim_segment(seg: &mut HeapSegment, target_size: usize) {
-        let new_seg_addr = seg.start_address() + (HEAP_SEG_HEADER_SIZE + target_size) as usize;
+        let new_seg_addr = seg.start_address() + (HEAP_SEG_HEADER_SIZE + target_size) as Word;
         let new_seg_size = seg.size - target_size;
         if new_seg_size > HEAP_SEG_HEADER_SIZE {
             seg.size = target_size;
@@ -149,37 +162,34 @@ impl HeapSegment {
     pub const fn new(size: usize) -> Self {
         Self { size, next: None }
     }
-    pub fn start_address(self: &Self) -> usize {
-        self as *const Self as usize
+    pub fn start_address(self: &Self) -> Word {
+        self as *const Self as Word
     }
-    pub fn end_address(self: &Self) -> usize {
-        self as *const Self as usize + (self.size + HEAP_SEG_HEADER_SIZE) as usize
+    pub fn end_address(self: &Self) -> Word {
+        self as *const Self as Word + (self.size + HEAP_SEG_HEADER_SIZE) as Word
     }
 }
 
 use alloc::alloc::{GlobalAlloc, Layout};
 use core::ptr;
 
-unsafe impl GlobalAlloc for Heap {
+unsafe impl GlobalAlloc for LockedHeap {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        let mut heap = self.mux.lock(self);
+        let mut heap = self.lock();
 
-        let ptr = match heap.allocate_segment(layout.size()) {
+        match heap.allocate_segment(layout.size()) {
             None => ptr::null_mut(),
             Some(ptr) => ptr
-        };
-        self.mux.unlock();
-        ptr
+        }
     }
 
     unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {
-        let mut heap = self.mux.lock(self);
-        heap.add_free_segment(_ptr as usize, _layout.size());
-        self.mux.unlock()
+        let mut heap = self.lock();
+        heap.add_free_segment(_ptr as Word, _layout.size());
     }
 }
 
 #[alloc_error_handler]
 fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
-    loop {}
+    panic!("allocation error: {:?}", layout)
 }
