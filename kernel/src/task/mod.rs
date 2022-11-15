@@ -132,16 +132,17 @@ impl Queue {
         }
     }
 
-    // scheduling function... rather simple for now considering only one queue and never ending tasks
-    pub fn schedule(q : &mut Queue) {    
+}
 
-        if !q.empty() {
-            let task = q.dequeue();             //take the first tasks in the queue and place it in last 
-            //context_switch()                  //still need to implement the context switch part 
-            q.enqueue(task.unwrap());
-        } 
-    }
+// scheduling function... rather simple for now considering only one queue and never ending tasks
+#[no_mangle] // Necessary in order to safely use this function in assembly code
+pub fn schedule(q : &mut Queue) {    
 
+    if !q.empty() {
+        let task = q.dequeue();             //take the first tasks in the queue and place it in last 
+        //context_switch()                  //still need to implement the context switch part 
+        q.enqueue(task.unwrap());
+    } 
 }
 
 unsafe impl Sync for Queue {}
