@@ -64,11 +64,11 @@ pub(crate) fn kcreate_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
     // should be put in registers r0-r3.
     tcb.stack_push(unsafe{&args as *const *mut u8 as *mut u8}, size_of::<*mut u8>());
 
-    // The following 12 general purpose registers are 0-filled
-    let mut zeros: [u8; 12] = [0; 12];
-    tcb.stack_push(unsafe{&mut zeros as *mut u8}, size_of::<u8>()*12);
-
-    // THE STACK POINTER IS NOT SAVED ONTO THE TASK'S STACK
+    // The following 12 general purpose registers AND THE STACK POINTER
+    // are 0-filled. The stack pointer will be initialized the first time the
+    // task is executed.
+    let mut zeros: [u8; 13] = [0; 13];
+    tcb.stack_push(unsafe{&mut zeros as *mut u8}, size_of::<u8>()*13);
 
     // The link register is zero-filled
     tcb.stack_push(unsafe{&mut zeros as *mut u8}, size_of::<u8>());
