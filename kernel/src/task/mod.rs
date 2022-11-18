@@ -6,20 +6,21 @@ use crate::{utility::memcpy, mutex::Mutex};
 //file to be reviewed, probably need to split it into modules, probably need to address some details
 
 //defined type 
-type TcbBlock = Option<Box<TaskTCB>>;           //used as a reference to a Task_TCB 
+type TcbBlock = Option<Box<TaskTCB>>;                 //used as a reference to a Task_TCB 
 const STACK_SIZE: usize = 1024;                         //size of the stack for every task
 
 //global variables
-pub const MAX_PRIORITY: u8 = 10;                    //max priority and size of the priority queues array
-static mut RUNNING: TcbBlock = None;                       //variable for the running task.. best way to store it?
+pub const MAX_PRIORITY: u8 = 10;                                //max priority and size of the priority queues array
+pub static mut running: *mut TaskTCB = ptr::null_mut();         //pointer to the current running task's TaskTCB
+pub static mut waiting_queue: *mut Queue = ptr::null_mut();     //pointer to the waiting processes queue 
 
 //definition of the Task Control Block 
 
 pub struct TaskTCB {
-    next: TcbBlock,                     //reference to the next Task_TCB
-    pub priority: u8,                       //priority of the task
+    pub priority: u8,                   //priority of the task
     stp: usize,                         //stack pointer
     stack: [u8; STACK_SIZE],            //stack associated to the task
+    next: TcbBlock,                     //reference to the next Task_TCB
 }
 
 impl TaskTCB {
@@ -132,47 +133,19 @@ impl Queue {
         }
     }
 
-    // scheduling function... rather simple for now considering only one queue and never ending tasks
-    pub fn schedule(q : &mut Queue) {    
-
-        if !q.empty() {
-            let task = q.dequeue();             //take the first tasks in the queue and place it in last 
-            //context_switch()                  //still need to implement the context switch part 
-            q.enqueue(task.unwrap());
+}
+// scheduling function for now considering only one queue and never ending tasks
+#[no_mangle]
+pub extern "C" fn schedule() -> *mut TaskTCB {    
+    unsafe{
+        if !(*waiting_queue).empty() {
+            let task = (*waiting_queue).dequeue();        //take the first tasks in the queue   
+            running = &mut task.unwrap();                                  //set RUNNING accordingly 
+            (*waiting_queue).enqueue(task.unwrap());                //and place the task back in last position in the queue
         } 
+        running
     }
-
 }
 
 unsafe impl Sync for Queue {}
 
-
-/*  just a test
-
-fn main(){
-
-    let mut test_queue: Queue;
-    test_queue = Queue::new();
-    let task1: TaskTCB;
-    task1 = TaskTCB::new(None,1,None);
-    let task2: TaskTCB;
-    task2 = TaskTCB::new(None,2,None);
-    let task3: TaskTCB;
-    task3 = TaskTCB::new(None,3,None);
-    let task4: TaskTCB;
-    task4 = TaskTCB::new(None,4,None);
-    
-    test_queue.enqueue(task1);
-    test_queue.enqueue(task2);
-    //test_queue.print();
-    test_queue.enqueue(task3);
-    test_queue.enqueue(task4);
-    //test_queue.print();
-    test_queue.dequeue();
-    test_queue.dequeue();
-    //test_queue.print();
-    test_queue.dequeue();
-    test_queue.dequeue();
-    test_queue.dequeue();
-
-}*/
