@@ -1,5 +1,6 @@
 use crate::{mutex::Mutex, utility::memcpy, WAITING_QUEUE};
 use alloc::boxed::Box;
+use core::borrow::BorrowMut;
 use core::marker::Sync;
 use core::ptr;
 
@@ -77,11 +78,11 @@ impl LockedQueue {
             mux: Mutex::new(Queue::new()),
         }
     }
-    pub fn enqueue(&self, block: TaskTCB) {
+    pub fn enqueue(&self, block: Box<TaskTCB>) {
         let mut queue = self.mux.lock();
         queue.enqueue(block);
     }
-    pub fn dequeue(&self) -> Option<TaskTCB> {
+    pub fn dequeue(&self) -> Option<Box<TaskTCB>> {
         let mut queue = self.mux.lock();
         queue.dequeue()
     }
@@ -112,24 +113,23 @@ impl Queue {
     }
 
     //enqueue a TaskTCB at the end of the queue
-    pub fn enqueue(&mut self, block: TaskTCB) {
-        let mut new_tail = Box::new(block); //create a new Box<TaskTCB> pointing to the new element to add
-        let tail_ptr: *mut _ = &mut *new_tail; //create raw pointer to the new element just created
+    pub fn enqueue(&mut self, block: Box<TaskTCB>) {
+        let tail_ptr: *mut _ = &mut *block; //create raw pointer to the new element just created
 
         if self.empty() {
             //if the queue is empty add the element in the head
-            self.head = Some(new_tail);
+            self.head = Some(block);
         } else {
             unsafe {
                 //if it is not empty add the elemente in the tail.next
-                (*self.tail).next = Some(new_tail);
+                (*self.tail).next = Some(block);
             }
         }
         self.tail = tail_ptr; //update the tail to the new end of the queue
     }
 
     //dequque the first element of the queue
-    pub fn dequeue(&mut self) -> Option<TaskTCB> {
+    pub fn dequeue(&mut self) -> Option<Box<TaskTCB>> {
         if let Some(mut old_head) = self.head.take() {
             match old_head.next.take() {
                 Some(task_tcb) => {
@@ -137,7 +137,7 @@ impl Queue {
                 }
                 None => self.tail = ptr::null_mut(), //shift the head to the current head.next and update the tail if
             } //it is the last element
-            Some(*old_head) //return the popped element
+            Some(old_head) //return the popped element
         } else {
             None //return None if the queue was already empty
         }
@@ -146,7 +146,7 @@ impl Queue {
 // scheduling function for now considering only one queue and never ending tasks
 #[no_mangle]
 pub unsafe extern "C" fn schedule() -> *mut TaskTCB {
-    if WAITING_QUEUE.empty() {
+    if !WAITING_QUEUE.empty() {
         //take the first tasks in the queue
         let task = WAITING_QUEUE.dequeue();
 
@@ -156,7 +156,7 @@ pub unsafe extern "C" fn schedule() -> *mut TaskTCB {
                 // Casting a read only reference to a mutable pointer.
                 // We now have 2 mutable references/pointers to this task. One inside
                 // 
-                RUNNING = &mut task;
+                RUNNING = task.borrow_mut();
             }
             // No task is found inside the queue 
             None => {}
