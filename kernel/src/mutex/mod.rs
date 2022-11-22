@@ -16,10 +16,8 @@ impl<T> Mutex<T> {
     }
 
     pub fn lock(&self) -> MutexGuard<T> {
-        unsafe {
-            disable(); // Disable interrupts
-            MutexGuard::new(self)
-        } 
+        disable(); // Disable interrupts
+        MutexGuard::new(self) 
     }
 }
 
