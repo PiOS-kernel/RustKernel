@@ -25,4 +25,4 @@ pub const HEAP_SIZE: usize = 0x8000; // 32KB
 pub static HEAP: LockedHeap = LockedHeap::new();
 
 // The tasks queue
-pub static TASKS_QUEUE: LockedQueue = LockedQueue::new();
+pub static WAITING_QUEUE: LockedQueue = LockedQueue::new();
