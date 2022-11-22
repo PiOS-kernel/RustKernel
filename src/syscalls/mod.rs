@@ -2,6 +2,7 @@ use crate::WAITING_QUEUE;
 use crate::task::{TaskTCB, RUNNING};
 use core::mem::size_of;
 use core::arch::asm;
+use alloc::boxed::Box;
 
 /* 
 This enum lists all the services that can be requested by an application to 
@@ -77,7 +78,7 @@ pub(crate) fn kcreate_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
     tcb.stack_push(&code as *const fn(*mut u8) as *mut u8, size_of::<*mut u8>());
 
     // The task is inserted into the tasks queue
-    WAITING_QUEUE.enqueue(tcb);
+    WAITING_QUEUE.enqueue(Box::new(tcb));
 }
 
 //this function does the context switch for a task

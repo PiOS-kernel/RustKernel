@@ -21,5 +21,16 @@ name = "piosapp"
 
 [profile.dev]
 debug = true
+codegen-units = 1
+lto = true
+opt-level = "z"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+debug = 0
+lto = true
+opt-level = "z"
+
 
 

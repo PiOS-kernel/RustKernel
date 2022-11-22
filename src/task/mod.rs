@@ -113,7 +113,7 @@ impl Queue {
     }
 
     //enqueue a TaskTCB at the end of the queue
-    pub fn enqueue(&mut self, block: Box<TaskTCB>) {
+    pub fn enqueue(&mut self, mut block: Box<TaskTCB>) {
         let tail_ptr: *mut _ = &mut *block; //create raw pointer to the new element just created
 
         if self.empty() {
