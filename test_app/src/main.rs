@@ -10,8 +10,6 @@ pub mod syscalls_tests;
 pub mod utility_tests;
 
 use cortex_m_rt::entry;
-#[cfg(not(test))]
-use panic_halt as _;
 
 #[entry]
 fn _start() -> ! {

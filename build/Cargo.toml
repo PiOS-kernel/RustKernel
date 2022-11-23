@@ -1,0 +1,11 @@
+[package]
+name = "pios"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+panic-halt = "0.2.0"
+kernel = { path="../kernel" }
+
+[lib]
+crate-type = ["staticlib"]
