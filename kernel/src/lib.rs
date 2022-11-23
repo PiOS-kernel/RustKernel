@@ -11,7 +11,6 @@ pub mod syscalls;
 pub mod utility;
 use allocator::LockedHeap;
 use task::LockedQueue;
-use panic_halt as _;
 
 // The word size for the architecture. Cortex-M4 works on 32-bit words.
 type Word = u32;
