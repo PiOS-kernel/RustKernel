@@ -224,6 +224,16 @@ impl Heap {
         }
     }
 
+    /* Utility function to compute the total available space in the heap */
+
+    pub fn available_space(&self) -> usize {
+        let mut total = 0;
+        for seg in self.iter() {
+            total += seg.size;
+        }
+        total
+    }
+
     /*
     This function copies an `HeapSegment` struct at the desired address, while
     returning a mutable reference to it.
