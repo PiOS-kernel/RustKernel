@@ -1,7 +1,6 @@
 use core::mem;
 use crate::mutex::MutexGuard;
 use core::cmp::max;
-use super::Word;
 use super::mutex::Mutex;
 
 const HEAP_SEG_HEADER_SIZE: usize = mem::size_of::<HeapSegment>();
@@ -62,25 +61,25 @@ impl LockedHeap {
 
 impl Heap {
 
-    const fn new() -> Self {
+    pub const fn new() -> Self {
         Self { head: None }
     }
 
     /* Initializes the heap as a single empty memory block */
 
-    fn init(&mut self, start_address: usize, size: usize) {
+    pub fn init(&mut self, start_address: usize, size: usize) {
         self.add_free_segment(start_address, size);
     }
 
     /* Creates the iterator */
 
-    fn iter(&self) -> HeapIterator {
+    pub fn iter(&self) -> HeapIterator {
         HeapIterator { next: self.head.as_deref() }
     }
 
     /* Allocates to the caller a memory segment */
 
-    fn allocate_segment(self: &mut Self, size: usize) -> Option<*mut u8> {
+    pub fn allocate_segment(self: &mut Self, size: usize) -> Option<*mut u8> {
         // There is no available memory left
         if self.head.is_none() {
             return None;
@@ -91,7 +90,7 @@ impl Heap {
 
         // Check the head first
         if self.head.as_ref().unwrap().size >= actual_size {
-            let mut old_head = self.head.take().unwrap();
+            let old_head = self.head.take().unwrap();
 
             // The segment is split into two new ones, and the firt one is 
             // allocated
@@ -122,7 +121,7 @@ impl Heap {
         
         // The segment is split into two new ones, and the firt one is 
         // allocated
-        let mut next = cursor.next.take().unwrap();
+        let next = cursor.next.take().unwrap();
         Self::trim_segment(next, actual_size);
         cursor.next = next.next.take();
         
@@ -134,7 +133,7 @@ impl Heap {
     free segments
     */
 
-    fn free_segment(self: &mut Self, start_address: usize, size: usize) {
+    pub fn free_segment(self: &mut Self, start_address: usize, size: usize) {
         self.add_free_segment(start_address, size);
 
         // Ajacent segments are merged
@@ -146,7 +145,7 @@ impl Heap {
     position
     */
 
-    fn add_free_segment(self: &mut Self, address: usize, size: usize) {     
+    pub fn add_free_segment(self: &mut Self, address: usize, size: usize) {     
         // The heap should never allocate segments of size less than
         // HEAP_SEG_HEADER_SIZE
         assert!(size > HEAP_SEG_HEADER_SIZE);
@@ -186,7 +185,7 @@ impl Heap {
     The function looks for adjecent segments and merges them into a single one
     */
 
-    fn compaction(self: &mut Self) {
+    pub fn compaction(self: &mut Self) {
         if self.head.is_none() {
             return;
         }
@@ -230,7 +229,7 @@ impl Heap {
     returning a mutable reference to it.
     */
 
-    unsafe fn init_segment(seg: HeapSegment, address: usize) -> &'static mut HeapSegment {
+    pub unsafe fn init_segment(seg: HeapSegment, address: usize) -> &'static mut HeapSegment {
         let address_ptr = address as *mut HeapSegment;
         address_ptr.write(seg);
         &mut *address_ptr
@@ -241,7 +240,7 @@ impl Heap {
     <target_size> and <size - target_size>
     */
 
-    fn trim_segment(seg: &mut HeapSegment, target_size: usize) {
+    pub fn trim_segment(seg: &mut HeapSegment, target_size: usize) {
         let new_seg_addr = seg.start_address() + target_size;
         let new_seg_size = seg.size - target_size;
 
@@ -317,5 +316,6 @@ unsafe impl GlobalAlloc for LockedHeap {
 
 #[alloc_error_handler]
 fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
-    panic!("allocation error: {:?}", layout)
+    panic!("allocation error: {:?}", layout);
+    loop{}
 }
