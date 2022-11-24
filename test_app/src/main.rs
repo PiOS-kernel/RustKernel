@@ -4,7 +4,7 @@
 #![test_runner(test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
-pub mod alloc_tests;
+pub mod allocator_tests;
 pub mod syscalls_tests;
 pub mod task_tests;
 pub mod utility_tests;
