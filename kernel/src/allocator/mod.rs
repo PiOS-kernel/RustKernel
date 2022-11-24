@@ -234,6 +234,16 @@ impl Heap {
         total
     }
 
+    /* Utility function that returns the number of free segments in the heap */
+
+    pub fn count_segments(&self) -> usize {
+        let mut total = 0;
+        for sef in self.iter() {
+            total += 1;
+        }
+        total
+    }
+
     /*
     This function copies an `HeapSegment` struct at the desired address, while
     returning a mutable reference to it.
