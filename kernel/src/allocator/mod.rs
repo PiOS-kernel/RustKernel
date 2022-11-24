@@ -3,7 +3,7 @@ use crate::mutex::MutexGuard;
 use core::cmp::max;
 use super::mutex::Mutex;
 
-const HEAP_SEG_HEADER_SIZE: usize = mem::size_of::<HeapSegment>();
+pub const HEAP_SEG_HEADER_SIZE: usize = mem::size_of::<HeapSegment>();
 
 type SegmentLink = Option<&'static mut HeapSegment>;
 
@@ -206,7 +206,7 @@ impl Heap {
                     if next.start_address()
                         == node_start + cursor.size
                     {
-                        cursor.size = cursor.size + HEAP_SEG_HEADER_SIZE + next.size;
+                        cursor.size = cursor.size + next.size;
                         cursor.next = next.next.take();
                         true
                     } else {
@@ -238,7 +238,7 @@ impl Heap {
 
     pub fn count_segments(&self) -> usize {
         let mut total = 0;
-        for sef in self.iter() {
+        for _ in self.iter() {
             total += 1;
         }
         total
@@ -249,7 +249,7 @@ impl Heap {
     returning a mutable reference to it.
     */
 
-    pub unsafe fn init_segment(seg: HeapSegment, address: usize) -> &'static mut HeapSegment {
+    unsafe fn init_segment(seg: HeapSegment, address: usize) -> &'static mut HeapSegment {
         let address_ptr = address as *mut HeapSegment;
         address_ptr.write(seg);
         &mut *address_ptr
@@ -260,7 +260,7 @@ impl Heap {
     <target_size> and <size - target_size>
     */
 
-    pub fn trim_segment(seg: &mut HeapSegment, target_size: usize) {
+    fn trim_segment(seg: &mut HeapSegment, target_size: usize) {
         let new_seg_addr = seg.start_address() + target_size;
         let new_seg_size = seg.size - target_size;
 
