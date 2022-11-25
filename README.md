@@ -12,7 +12,15 @@ Pios is provided as a static library, issue the following commands to build it (
 ```
 $ cd build
 $ cargo build --release
-$ cp target/thumbv7em-none-eabi/release/libpios.a ..
+$ cp target/thumbv7em-none-eabihf/release/libpios.a ..
+$ cd ..
+```
+
+To generate `.h` file using `cbindgen`
+```
+$ cd kernel
+$ cbindgen --config cbindgen.toml --crate kernel --output pios.h
+$ cp kernel/pios.h ..
 $ cd ..
 ```
 
