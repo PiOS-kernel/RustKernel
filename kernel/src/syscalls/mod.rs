@@ -104,5 +104,6 @@ pub unsafe fn task_switch() {
         "LDMFD r13!, {{r0-r12, r14}}",   // restore register
         "MOV pc, lr",                    // return             
         in("r0") RUNNING,                //initialize r0 with the running pointer
-    );
+    );  // rust-analyzer highlights an error because since the
+    // target architecture is not configured, it is using the host's assembler
 }

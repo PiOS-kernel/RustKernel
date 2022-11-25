@@ -1,5 +1,5 @@
 use core::mem;
-use crate::mutex::MutexGuard;
+use crate::{mutex::MutexGuard};
 use core::cmp::max;
 use super::mutex::Mutex;
 
@@ -57,6 +57,14 @@ impl LockedHeap {
     pub fn init(&self, start_address: usize, size: usize) {
         self.lock().add_free_segment(start_address, size);
     } 
+
+    pub fn available_space(&self) -> usize {
+        self.lock().available_space()
+    }
+
+    pub fn count_segments(&self) -> usize {
+        self.lock().count_segments()
+    }
 }
 
 impl Heap {
@@ -145,7 +153,7 @@ impl Heap {
     position
     */
 
-    pub fn add_free_segment(self: &mut Self, address: usize, size: usize) {     
+    pub fn add_free_segment(self: &mut Self, address: usize, size: usize) {
         // The heap should never allocate segments of size less than
         // HEAP_SEG_HEADER_SIZE
         assert!(size > HEAP_SEG_HEADER_SIZE);
@@ -319,7 +327,6 @@ use core::ptr;
 unsafe impl GlobalAlloc for LockedHeap {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         let mut heap = self.lock();
-
         match heap.allocate_segment(layout.size()) {
             None => ptr::null_mut(),
             Some(ptr) => ptr
@@ -337,5 +344,4 @@ unsafe impl GlobalAlloc for LockedHeap {
 #[alloc_error_handler]
 fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
     panic!("allocation error: {:?}", layout);
-    loop{}
 }

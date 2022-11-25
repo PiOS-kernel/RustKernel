@@ -1,4 +1,4 @@
-use kernel::allocator::{Heap};
+use kernel::{allocator::{Heap}};
 use cortex_m_semihosting::hprintln;
 
 /* Utility function to display the free segments present in the heap */
