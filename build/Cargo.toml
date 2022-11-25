@@ -8,6 +8,7 @@ panic-halt = "0.2.0"
 kernel = { path="../kernel" }
 
 [lib]
+name = "pios"
 crate-type = ["staticlib"]
 
 [profile.release]

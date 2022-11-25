@@ -21,11 +21,13 @@ It accepts a function pointer, a pointer to its arguments, and a priority.
 
 The function simply invokes the kernel to request the given service.
 */
-pub fn create_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
+#[no_mangle]
+pub extern "C" fn create_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
     unsafe {
         asm!("svc {syscall_id}", syscall_id = const SysCallID::CREATE_TASK_ID as u8);
     }
 }
+
 
 /*
 This is the function used by the kernel to create a new task
@@ -86,7 +88,7 @@ pub(crate) fn kcreate_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
 //calls the schedule function
 //and loads the new task's stack in the registers
 #[no_mangle]
-pub unsafe extern "C" fn task_switch() {             
+pub unsafe fn task_switch() {             
     asm!(
         //SAVE: 
         "STMFD r13!, {{r0-r12, r14}}", 

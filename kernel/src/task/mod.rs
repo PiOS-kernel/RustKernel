@@ -145,7 +145,7 @@ impl Queue {
 }
 // scheduling function for now considering only one queue and never ending tasks
 #[no_mangle]
-pub unsafe extern "C" fn schedule() -> *mut TaskTCB {
+pub unsafe fn schedule() -> *mut TaskTCB {
     if !WAITING_QUEUE.empty() {
         //take the first tasks in the queue
         let task = WAITING_QUEUE.dequeue();
