@@ -3,6 +3,7 @@ use crate::task::{TaskTCB, RUNNING};
 use core::mem::size_of;
 use core::arch::asm;
 use alloc::boxed::Box;
+use cortex_m_semihosting::{hprint, hprintln};
 
 /* 
 This enum lists all the services that can be requested by an application to 
@@ -22,12 +23,22 @@ It accepts a function pointer, a pointer to its arguments, and a priority.
 The function simply invokes the kernel to request the given service.
 */
 #[no_mangle]
-pub extern "C" fn create_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
+pub extern "C" fn create_task(code: fn(*mut u8)->!, args: *mut u8, priority: u8) {
     unsafe {
         asm!("svc {syscall_id}", syscall_id = const SysCallID::CREATE_TASK_ID as u8);
+        //asm!("svc #0x01");
     }
 }
 
+#[no_mangle]
+pub(crate) fn unknownService(){
+    loop {
+        hprintln!("SVC called unknown service");
+        for i in 0x0..0xFFFFF {
+            // busy waiting
+        }
+    }
+ }
 
 /*
 This is the function used by the kernel to create a new task
@@ -58,8 +69,9 @@ The registers layout for the cortex-M4 processor is the following:
 
     TODO: address the need to initialize and store control registers
 */
+#[no_mangle]
 pub(crate) fn kcreate_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
-    // The task's TCB is created
+    The task's TCB is created
     let mut tcb = TaskTCB::new(None, priority);
 
     // The pointer to the arguments is saved in register r0.
