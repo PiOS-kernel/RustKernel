@@ -98,6 +98,12 @@ pub struct Queue {
     tail: *mut TaskTCB,
 }
 
+// This type implements the `Iterator` trait, which allows to iterate through
+// a Queue through the `for task in queue` construct 
+pub struct QueueIterator<'a> {
+    next: Option<&'a TaskTCB>,
+}
+
 impl Queue {
     //initialize the queue with both head and tail None
     pub const fn new() -> Self {
@@ -112,8 +118,13 @@ impl Queue {
         self.head.is_none()
     }
 
+    //returns an iterator
+    pub fn iter(&mut self) -> QueueIterator {
+        QueueIterator { next: self.head.as_deref() }
+    }
+
     //enqueue a TaskTCB at the end of the queue
-    pub fn enqueue(&mut self, block: Box<TaskTCB>) {
+    pub fn enqueue(&mut self, mut block: Box<TaskTCB>) {
         let tail_ptr: *mut _ = &mut *block; //create raw pointer to the new element just created
 
         if self.empty() {
@@ -142,10 +153,19 @@ impl Queue {
             None //return None if the queue was already empty
         }
     }
+
+    //returns the number of tasks currently in the queue
+    pub fn count_tasks(&mut self) -> usize {
+        let mut count = 0;
+        for _ in self.iter() {
+            count += 1;
+        }
+        count 
+    } 
 }
 // scheduling function for now considering only one queue and never ending tasks
 #[no_mangle]
-pub unsafe extern "C" fn schedule() -> *mut TaskTCB {
+pub unsafe fn schedule() -> *mut TaskTCB {
     if !WAITING_QUEUE.empty() {
         //take the first tasks in the queue
         let task = WAITING_QUEUE.dequeue();
@@ -163,6 +183,18 @@ pub unsafe extern "C" fn schedule() -> *mut TaskTCB {
         }
     }
     RUNNING
+}
+
+// Iterator implmentation for the `QueueIterator` type
+impl<'a> Iterator for QueueIterator<'a> {
+    type Item = &'a TaskTCB;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next.map(|node| {
+            self.next = node.next.as_deref();
+            node
+        })
+    }
 }
 
 unsafe impl Sync for Queue {}

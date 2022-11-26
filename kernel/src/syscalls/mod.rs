@@ -2,6 +2,7 @@ use crate::WAITING_QUEUE;
 use crate::task::{TaskTCB, RUNNING};
 use core::mem::size_of;
 use core::arch::asm;
+use alloc::boxed::Box;
 
 /* 
 This enum lists all the services that can be requested by an application to 
@@ -20,11 +21,13 @@ It accepts a function pointer, a pointer to its arguments, and a priority.
 
 The function simply invokes the kernel to request the given service.
 */
-pub fn create_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
+#[no_mangle]
+pub extern "C" fn create_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
     unsafe {
         asm!("svc {syscall_id}", syscall_id = const SysCallID::CREATE_TASK_ID as u8);
     }
 }
+
 
 /*
 This is the function used by the kernel to create a new task
@@ -77,7 +80,7 @@ pub(crate) fn kcreate_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
     tcb.stack_push(&code as *const fn(*mut u8) as *mut u8, size_of::<*mut u8>());
 
     // The task is inserted into the tasks queue
-    WAITING_QUEUE.enqueue(tcb);
+    WAITING_QUEUE.enqueue(Box::new(tcb));
 }
 
 //this function does the context switch for a task
@@ -85,7 +88,7 @@ pub(crate) fn kcreate_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
 //calls the schedule function
 //and loads the new task's stack in the registers
 #[no_mangle]
-pub unsafe extern "C" fn task_switch() {             
+pub unsafe fn task_switch() {             
     asm!(
         //SAVE: 
         "STMFD r13!, {{r0-r12, r14}}", 
@@ -101,5 +104,6 @@ pub unsafe extern "C" fn task_switch() {
         "LDMFD r13!, {{r0-r12, r14}}",   // restore register
         "MOV pc, lr",                    // return             
         in("r0") RUNNING,                //initialize r0 with the running pointer
-    );
+    );  // rust-analyzer highlights an error because since the
+    // target architecture is not configured, it is using the host's assembler
 }

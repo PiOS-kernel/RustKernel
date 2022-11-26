@@ -1,0 +1,19 @@
+[package]
+name = "pios"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+panic-halt = "0.2.0"
+kernel = { path="../kernel" }
+
+[lib]
+name = "pios"
+crate-type = ["staticlib"]
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+debug = 0
+lto = true
+opt-level = "z"
