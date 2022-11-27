@@ -36,7 +36,7 @@ impl TaskTCB {
     }
 
     // utility method to push values onto the task's stack
-    pub fn stack_push(&mut self, ptr: *mut u8, size: usize) {
+    pub fn stack_push(&mut self, src: *const u8, size: usize) {
         // Check whether there is room left on the stack
         if self.stp > STACK_SIZE - size {
             panic!();
@@ -45,8 +45,8 @@ impl TaskTCB {
         // The data is stored onto the stack and the stack pointer
         // is incremented.
         unsafe {
-            let base = (&mut self.stack) as *mut u8;
-            memcpy(ptr, base.add(self.stp), size);
+            let base = (&mut self.stack[0]) as *mut u8;
+            memcpy(src, base.add(self.stp), size);
         }
         self.stp += size;
     }
@@ -89,6 +89,10 @@ impl LockedQueue {
     pub fn empty(&self) -> bool {
         let queue = self.mux.lock();
         queue.empty()
+    }
+    pub fn count_tasks(&self) -> usize {
+        let mut queue = self.mux.lock();
+        queue.count_tasks()
     }
 }
 
