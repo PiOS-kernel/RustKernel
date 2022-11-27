@@ -1,4 +1,5 @@
 
+use cortex_m_semihosting::hprintln;
 use kernel::{syscalls::create_task, WAITING_QUEUE};
 
 fn foo(pippo : *mut u8) -> ! {
@@ -26,5 +27,5 @@ fn test_create_task() {
 
     // r15(pc) should contain the pointer to the task function
     let r15_ptr = unsafe{ r0_ptr.add(15) };
-    assert_eq!(unsafe{ r15_ptr }, foo as *const usize);
+    assert_eq!(unsafe{ *r15_ptr }, foo as usize);
 }
