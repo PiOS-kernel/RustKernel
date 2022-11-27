@@ -52,7 +52,7 @@ fn test_stack_push() {
         unsafe { assert_eq!(*base.offset(i as isize) , *src.offset(i as isize))}
     }
 
-    assert_eq!(stp_old, task_tcb.stp+5);
+    assert_eq!(stp_old, task_tcb.stp - 5);
 }
 
 #[test_case]
@@ -64,5 +64,5 @@ fn test_get_stp() {
     task_tcb.stack_push(src, 5);
     let stp = task_tcb.get_stp();
 
-    unsafe { assert_eq!(*stp.sub(1),5) };
+    unsafe { assert_eq!(*stp.sub(1), 5) };
 }
