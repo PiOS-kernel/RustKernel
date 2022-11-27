@@ -46,10 +46,7 @@ fn foo(){}
 
 #[exception]
 fn SVCall(){
-    // let number : i32;
-    // hprintln!("inside SVC");
     unsafe{
-        //foo();
         asm!(
             "mov r0, r7",
             "ldr r0, [r0, #40]",
@@ -57,10 +54,6 @@ fn SVCall(){
             "cmp r0, #01",
             "itt eq",
             "ldreq r1, =kcreate_task",
-            "beq 2f",
-            "cmp r0, #02",
-            "itt eq",
-            "ldreq r1, =test2",
             "beq 2f",
             "ldr r1, =unknownService",
             "2:",
@@ -70,6 +63,16 @@ fn SVCall(){
         );
     }
 }
+
+/* Add this code block when implementing a new service
+
+    "cmp r0, #numeric_code",
+    "itt eq",
+    "ldreq r1, =service_name",
+    "beq 2f",
+
+*/
+
 
 /* Possibili cause se SVCall non dovesse funzionare
 - potrebbe essere la "risalita" dello stack - invece di essere 24 (6 registri da 4 byte), è 40 - probabilmente viene pushato altro
