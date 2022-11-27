@@ -12,6 +12,8 @@ pub mod utility;
 use core::arch::asm;
 use allocator::LockedHeap;
 use task::LockedQueue;
+
+use cortex_m::peripheral::syst::SystClkSource;
 use cortex_m_rt::exception;
 #[macro_use(exception)]
 
@@ -30,10 +32,27 @@ static mut waiting_queue: LockedQueue = LockedQueue::new();
 pub static WAITING_QUEUE: &LockedQueue = unsafe{&waiting_queue};
 
 // The kernel initialization routine, for the time being it just 
-// initializes the heap
+// initializes the heap and the systick peripheral
 pub unsafe fn kernel_init() {
     let heap_start = &HEAP_MEMORY[0] as *const u8 as usize;
     HEAP.init(heap_start, HEAP_SIZE);
+
+    // systick initializatoin
+    let p = cortex_m::Peripherals::take().unwrap();
+    let mut syst = p.SYST;
+
+    // configures the system timer to trigger a SysTick exception every second
+    syst.set_clock_source(SystClkSource::Core);
+    // this is configured for the LM3S6965 which has a default CPU clock of 12 MHz
+    syst.set_reload(12_000_000);
+    syst.clear_current();
+    syst.enable_counter();
+    syst.enable_interrupt();
+}
+
+#[exception]
+fn SysTick(){
+    hprintln!("SysTick handler");
 }
 
 #[exception]

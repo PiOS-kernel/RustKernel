@@ -12,6 +12,29 @@
             "executable": "./target/thumbv7em-none-eabi/debug/kernel",
             "cpu": "cortex-m4",
             "machine": "lm3s6965evb",
+        }, 
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Debug Test (QEMU)",
+            "servertype": "qemu",
+            "cwd": "${workspaceFolder}/test_app",
+            "preLaunchTask": "Cargo Test",
+            "runToEntryPoint": "_start",
+            "executable": "${workspaceFolder}/test_app/target/thumbv7em-none-eabi/debug/deps/test_app-a885718fa74111ae",
+            "cpu": "cortex-m4",
+            "machine": "lm3s6965evb",
+        },
+        {
+            "name": "GDB - Test",
+            "type": "gdb",
+            "request": "attach",
+            "cwd": "${workspaceFolder}/test_app",
+            "executable": "${workspaceFolder}/test_app/target/thumbv7em-none-eabi/debug/deps/test_app-a885718fa74111ae",
+            "target": ":3333",
+            "remote": true,
+            "gdbpath" : "/usr/bin/gdb-multiarch",
+            "stopAtConnect": true
         }
     ]
 }
