@@ -8,6 +8,12 @@
 
 ## Building the kernel
 
+Building the kernel requires a nightly version of the compiler. To install that run:
+```
+$ rustup override set nightly
+```
+Now the default compiler that cargo will use to build this project is set to the nightly version.
+
 Pios is provided as a static library, issue the following commands to build it (assuming you are currently in the root directory of the project):
 ```
 $ cd build
