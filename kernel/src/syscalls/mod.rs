@@ -26,7 +26,6 @@ The function simply invokes the kernel to request the given service.
 pub extern "C" fn create_task(code: fn(*mut u8)->!, args: *mut u8, priority: u8) {
     unsafe {
         asm!("svc {syscall_id}", syscall_id = const SysCallID::CREATE_TASK_ID as u8);
-        //asm!("svc #0x01");
     }
 }
 
@@ -71,22 +70,19 @@ The registers layout for the cortex-M4 processor is the following:
 */
 #[no_mangle]
 pub(crate) fn kcreate_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
-    The task's TCB is created
+    // The task's TCB is created
     let mut tcb = TaskTCB::new(None, priority);
 
     // The pointer to the arguments is saved in register r0.
     // The ARM ABI specifies that the first 4 32-bit function arguments
     // should be put in registers r0-r3.
-    tcb.stack_push(&args as *const *mut u8 as *mut u8, size_of::<*mut u8>());
+    tcb.stack_push(args as *mut u8, size_of::<*mut u8>());
 
-    // The following 12 general purpose registers AND THE STACK POINTER
-    // are 0-filled. The stack pointer will be initialized the first time the
-    // task is executed.
-    let mut zeros: [u8; 13] = [0; 13];
-    tcb.stack_push(&mut zeros as *mut u8, size_of::<u8>()*13);
-
-    // The link register is zero-filled
-    tcb.stack_push(&mut zeros as *mut u8, size_of::<u8>());
+    // The following 11 general purpose registers, the stack pointer and
+    // the link register are 0-filled. The stack pointer will be
+    // initialized the first time the task is executed.
+    let mut zeros: [u8; 14] = [0; 14];
+    tcb.stack_push(&mut zeros[0] as *mut u8, size_of::<u8>() * 14);
 
     // The program counter is saved with the pointer to the task's code
     tcb.stack_push(&code as *const fn(*mut u8) as *mut u8, size_of::<*mut u8>());

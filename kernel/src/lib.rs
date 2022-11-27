@@ -10,15 +10,9 @@ pub mod task;
 pub mod syscalls;
 pub mod utility;
 use core::arch::asm;
-
 use allocator::LockedHeap;
 use task::LockedQueue;
-
 use cortex_m_rt::exception;
-use cortex_m_semihosting::{hprint, hprintln};
-
-use syscalls::kcreate_task;
-
 #[macro_use(exception)]
 
 // The memory for the heap is allocated at compile time
@@ -41,8 +35,6 @@ pub unsafe fn kernel_init() {
     let heap_start = &HEAP_MEMORY[0] as *const u8 as usize;
     HEAP.init(heap_start, HEAP_SIZE);
 }
-
-fn foo(){}
 
 #[exception]
 fn SVCall(){

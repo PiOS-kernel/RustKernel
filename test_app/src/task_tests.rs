@@ -42,8 +42,8 @@ fn test_dequeue() {
 fn test_stack_push() {
     let mut task_tcb = TaskTCB::new(None, 0);
     let base = (&mut task_tcb.stack) as *mut u8;
-    let buff = {1;2;3;4;5};
-    let src = (&mut buff) as *mut u8;
+    let mut buff: [u8; 5] = [1, 2, 3, 4, 5];
+    let src = (&mut buff[0]) as *mut u8;
     let stp_old = task_tcb.stp;
 
     task_tcb.stack_push(src,5);
@@ -58,11 +58,11 @@ fn test_stack_push() {
 #[test_case]
 fn test_get_stp() {
     let mut task_tcb = TaskTCB::new(None, 0);
-    let buff = {1;2;3;4;5};
-    let src = (&mut buff) as *mut u8;
+    let mut buff: [u8; 5] = [1, 2, 3, 4, 5];
+    let src = (&mut buff[0]) as *mut u8;
 
     task_tcb.stack_push(src, 5);
     let stp = task_tcb.get_stp();
 
-    unsafe { assert_eq!(*stp.add(-1),5) };
+    unsafe { assert_eq!(*stp.sub(1),5) };
 }

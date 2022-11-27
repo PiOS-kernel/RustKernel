@@ -18,9 +18,9 @@ pub static mut RUNNING: *mut TaskTCB = ptr::null_mut(); //pointer to the current
 
 pub struct TaskTCB {
     pub priority: u8,        //priority of the task
-    stp: usize,              //stack pointer
-    stack: [u8; STACK_SIZE], //stack associated to the task
-    next: TcbBlock,          //reference to the next Task_TCB
+    pub stp: usize,              //stack pointer
+    pub stack: [u8; STACK_SIZE], //stack associated to the task
+    pub next: TcbBlock,          //reference to the next Task_TCB
 }
 
 impl TaskTCB {
