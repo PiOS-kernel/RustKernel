@@ -17,8 +17,8 @@ pub static mut RUNNING: *mut TaskTCB = ptr::null_mut(); //pointer to the current
 //definition of the Task Control Block
 
 pub struct TaskTCB {
-    pub priority: u8,        //priority of the task
     pub stp: usize,              //stack pointer
+    pub priority: u8,            //priority of the task
     pub stack: [u8; STACK_SIZE], //stack associated to the task
     pub next: TcbBlock,          //reference to the next Task_TCB
 }
@@ -167,6 +167,7 @@ impl Queue {
         count 
     } 
 }
+ 
 // scheduling function for now considering only one queue and never ending tasks
 #[no_mangle]
 pub unsafe fn schedule() -> *mut TaskTCB {

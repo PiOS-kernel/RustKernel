@@ -52,7 +52,7 @@ pub unsafe fn kernel_init() {
 
 #[exception]
 fn SysTick(){
-    hprintln!("SysTick handler");
+    //hprintln!("SysTick handler");
 }
 
 #[exception]
