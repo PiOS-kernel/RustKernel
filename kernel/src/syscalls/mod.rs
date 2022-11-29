@@ -4,6 +4,7 @@ use core::mem::size_of;
 use core::arch::asm;
 use alloc::boxed::Box;
 use cortex_m_semihosting::{hprint, hprintln};
+use cortex_m::interrupt::disable;
 
 /* 
 This enum lists all the services that can be requested by an application to 
@@ -103,22 +104,23 @@ pub(crate) fn kcreate_task(code: fn(*mut u8)->!, args: *mut u8, priority: u8) {
 //calls the schedule function
 //and loads the new task's stack in the registers
 #[no_mangle]
-pub unsafe fn task_switch() {             
+#[cfg(target_arch = "arm")]
+pub unsafe fn task_switch() {
+
+    disable();                           //disable all interrupts
     asm!(
         //SAVE: 
-        "STMFD r13!, {{r0-r12, r14}}", 
-        //"LDR r0, RUNNING",             r0 is inizialized as an input registeer containing the running running  
-        "LDR r1, [r0, #0]",              // r1<-runningPROC                  come è salvata la struct in memoria? 
-        "STR r13, [r1, #1]",             // running->ksp = sp                Quanti byte di offset per sp?
+        "STMFD r13!, {{r0-r12, r14}}",   //store register's values in current task's stack  
+        "LDR r1, [r0, #0]",              // r1<-runningPROC                   
+        "STR r13, [r1, #1]",             // running->ksp = sp                
         //FIND:
         "BL schedule",                   // call schedule()                  
         //RESUME:
         //arm convention save in r0 the return value of schedule which is the pointer to the new running task
         "LDR r1, [r0, #0]",              // r1<-new running PROC
         "LDR r13, [r1, #1]",             // restore running->ksp
-        "LDMFD r13!, {{r0-r12, r14}}",   // restore register
+        "LDMFD r13!, {{r0-r12, r14}}",   // load new task's stack in the registers
         "MOV pc, lr",                    // return             
         in("r0") RUNNING,                //initialize r0 with the running pointer
-    );  // rust-analyzer highlights an error because since the
-    // target architecture is not configured, it is using the host's assembler
+    );  
 }
