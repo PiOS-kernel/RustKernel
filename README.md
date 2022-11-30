@@ -55,3 +55,30 @@ fn your_test() {
 ```
 
 The `#[test_case]` directive lets the compiler know that that function is a test that should be run when you issue the `cargo test` command.
+
+## Debugging with GDB
+
+In some situations the debugger is extremely helpful to debug kernel code. To run tests with debugger support, edit the [config.toml](./test_app/.cargo/config.toml) file by uncommenting the appropriate runner:
+```
+# to run without gdb support
+# runner = ...
+
+# to run with gdb support
+runner = ...
+```
+
+Now you need to set the path to the executable that GDB should look for. In the [.gdbinit](./test_app/.gdbinit) file set the `file` path to the test executable. Be careful, the test executable is not [test_app](./test_app/target/thumbv7em-none-eabi/debug/test_app), it is instead found in the [deps](./test_app/target/thumbv7em-none-eabi/debug/deps/) directory, by the name `test_app-` followed by a string of digits.
+
+To run the tests, as usual:
+```
+$ cd test_app
+$ cargo test
+```
+the execution is halted immediately, waiting for probes from the debugger. Now run the debugger by opening another terminal and typing:
+```
+$ cd test_app
+$ gdb-multiarch
+```
+the first time you run the debugger a warning will be displayed asking you to add the path to the [.gdbinit](./test_app/.gdbinit) file to a gdb-specific configuration file. You should do that. If the directory containing the configuration file does not exist, just create it and add the configuration file, than inside it write the command displayed by the warning message.You can now kill gdb and re-start it, the warning message should not be displayed anymore.
+
+To get some inspiration on the capabilities of gdb, have a look at the commands listed in the [.gdbinit](./test_app/.gdbinit) file.

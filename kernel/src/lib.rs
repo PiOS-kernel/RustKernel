@@ -2,6 +2,7 @@
 #![feature(const_mut_refs)]
 #![feature(alloc_error_handler)]
 #![feature(asm_const)]
+#![feature(naked_functions)]
 
 extern crate alloc;
 pub mod allocator;
@@ -75,17 +76,16 @@ fn SysTick(){
 fn SVCall(){
     unsafe{
         asm!(
-            "mov r0, r7",
-            "ldr r0, [r0, #40]",
-            "ldrb r0, [r0, #-2]",
-            "cmp r0, #01",
+            "ldr r4, [r7, #40]",
+            "ldrb r4, [r4, #-2]",
+            "cmp r4, #01",
             "itt eq",
-            "ldreq r1, =kcreate_task",
+            "ldreq r5, =kcreate_task",
             "beq 2f",
-            "ldr r1, =unknownService",
+            "ldr r5, =unknownService",
             "2:",
             "str lr, [sp, #-4]!",
-            "blx r1",
+            "blx r5",
             "ldr pc, [sp], #4",
         );
     }
