@@ -15,10 +15,11 @@ use cortex_m_rt::{entry, exception};
 use cortex_m_semihosting::{hprint, hprintln};
 use kernel::{kernel_init};
 
+
 #[entry]
 fn _start() -> ! {
     // The kernel is initialized
-    unsafe{ kernel_init() };
+    kernel_init(120000);    
     
     #[cfg(test)]
     test_main();

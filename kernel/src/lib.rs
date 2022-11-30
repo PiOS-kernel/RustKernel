@@ -13,8 +13,9 @@ use core::arch::asm;
 use allocator::LockedHeap;
 use task::LockedQueue;
 
-use cortex_m::peripheral::syst::SystClkSource;
+
 use cortex_m_rt::exception;
+use cortex_m_semihosting::{hprint, hprintln};
 #[macro_use(exception)]
 
 // The memory for the heap is allocated at compile time
@@ -31,20 +32,28 @@ pub static HEAP: &LockedHeap = unsafe{&heap};
 static mut waiting_queue: LockedQueue = LockedQueue::new();
 pub static WAITING_QUEUE: &LockedQueue = unsafe{&waiting_queue};
 
+use cortex_m::peripheral::syst::SystClkSource;
+
+static mut systick_counter: u8 = 0;
+const TASK_TIME_UNIT: u8 = 10;
+
 // The kernel initialization routine, for the time being it just 
 // initializes the heap and the systick peripheral
-pub unsafe fn kernel_init() {
-    let heap_start = &HEAP_MEMORY[0] as *const u8 as usize;
-    HEAP.init(heap_start, HEAP_SIZE);
+#[no_mangle]
+pub extern "C" fn kernel_init(reload_value : u32) {
+    unsafe{
+        let heap_start = &HEAP_MEMORY[0] as *const u8 as usize;
+        HEAP.init(heap_start, HEAP_SIZE);
+    }
 
-    // systick initializatoin
+    //systick init
     let p = cortex_m::Peripherals::take().unwrap();
     let mut syst = p.SYST;
-
-    // configures the system timer to trigger a SysTick exception every second
     syst.set_clock_source(SystClkSource::Core);
     // this is configured for the LM3S6965 which has a default CPU clock of 12 MHz
-    syst.set_reload(12_000_000);
+    syst.set_reload(reload_value);
+
+    // questi tre da fare una volta che il kernel è inizializzato
     syst.clear_current();
     syst.enable_counter();
     syst.enable_interrupt();
@@ -52,7 +61,14 @@ pub unsafe fn kernel_init() {
 
 #[exception]
 fn SysTick(){
-    hprintln!("SysTick handler");
+    unsafe{ 
+        systick_counter += 1;
+        //hprintln!("SysTick handler - {}", systick_counter);
+        if systick_counter ==  TASK_TIME_UNIT{
+            hprintln!("TIME OUT");
+            systick_counter = 0;
+        }
+    }
 }
 
 #[exception]

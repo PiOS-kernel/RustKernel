@@ -7,8 +7,6 @@
 
 #define HEAP_SIZE 32768
 
-#define HEAP_START 33587200
-
 #define MAX_PRIORITY 10
 
-void create_task(void (*code)(uint8_t*), uint8_t *args, uint8_t priority);
+void kernel_init(uint32_t reload_value);
