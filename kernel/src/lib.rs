@@ -60,7 +60,7 @@ pub extern "C" fn kernel_init(reload_value : u32) {
     syst.enable_interrupt();
 }
 
-#[exception]
+/* #[exception]
 fn SysTick(){
     unsafe{ 
         systick_counter += 1;
@@ -70,7 +70,7 @@ fn SysTick(){
             systick_counter = 0;
         }
     }
-}
+} */
 
 #[exception]
 fn SVCall(){
