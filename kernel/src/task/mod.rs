@@ -17,7 +17,7 @@ pub static mut RUNNING: *mut TaskTCB = ptr::null_mut(); //pointer to the current
 //definition of the Task Control Block
 
 pub struct TaskTCB {
-    pub stp: usize,              //stack pointer
+    pub stp: *mut u8,            //stack pointer
     pub priority: u8,            //priority of the task
     pub stack: [u8; STACK_SIZE], //stack associated to the task
     pub next: TcbBlock,          //reference to the next Task_TCB
@@ -27,37 +27,38 @@ impl TaskTCB {
     //constructor for a TaskTCB that return an instance of a TaskTCB
     //with the associating the parameters to the corresponding fields
     pub fn new(n: TcbBlock, p: u8) -> Self {
-        Self {
+        let mut tcb = Self {
             next: n,
             priority: p,
-            stp: 0,
+            stp:  0x0 as *mut u8,
             stack: [0; STACK_SIZE],
-        }
+        };
+
+        // The stack pointer is initialized to the start address of the task's
+        // stack
+        tcb.stp = tcb.stack_base();
+        tcb
+    }
+
+    // utility method to compute the base address of the task's stack
+    pub fn stack_base(&self) -> *mut u8 {
+        unsafe { &self.stack[0] as *const u8 as *mut u8 }
     }
 
     // utility method to push values onto the task's stack
     pub fn stack_push(&mut self, src: *const u8, size: usize) {
         // Check whether there is room left on the stack
-        if self.stp > STACK_SIZE - size {
-            panic!();
+        if self.stp as usize > (self.stack_base() as usize) + STACK_SIZE {
+            panic!(); // execution is halted
         }
 
         // The data is stored onto the stack and the stack pointer
         // is incremented.
         unsafe {
             let base = (&mut self.stack[0]) as *mut u8;
-            memcpy(src, base.add(self.stp), size);
+            memcpy(src, self.stp, size);
         }
-        self.stp += size;
-    }
-
-    // this method allows to access the task's stack pointer as a raw memory
-    // address
-    pub fn get_stp(&self) -> *mut u8 {
-        unsafe {
-            let base = &self.stack as *const u8 as *mut u8;
-            base.add(self.stp)
-        }
+        self.stp = unsafe{ self.stp.add(size) };
     }
 }
 
