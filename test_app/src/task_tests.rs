@@ -52,17 +52,11 @@ fn test_stack_push() {
         unsafe { assert_eq!(*base.offset(i as isize) , *src.offset(i as isize))}
     }
 
-    assert_eq!(stp_old, task_tcb.stp - 5);
+    assert_eq!(stp_old, unsafe{ task_tcb.stp.sub(5) });
 }
 
 #[test_case]
-fn test_get_stp() {
+fn test_stack_base() {
     let mut task_tcb = TaskTCB::new(None, 0);
-    let mut buff: [u8; 5] = [1, 2, 3, 4, 5];
-    let src = (&mut buff[0]) as *mut u8;
-
-    task_tcb.stack_push(src, 5);
-    let stp = task_tcb.get_stp();
-
-    unsafe { assert_eq!(*stp.sub(1), 5) };
+    assert_eq!(task_tcb.stack_base(), unsafe{ &mut task_tcb.stack[0] as *mut u8});
 }
