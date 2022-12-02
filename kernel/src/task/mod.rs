@@ -8,7 +8,7 @@ use core::ptr;
 
 //defined type
 type TcbBlock = Option<Box<TaskTCB>>; //used as a reference to a Task_TCB
-const STACK_SIZE: usize = 1024; //size of the stack for every task
+pub const STACK_SIZE: usize = 4096; //size of the stack for every task
 
 //global variables
 pub const MAX_PRIORITY: u8 = 10; //max priority and size of the priority queues array

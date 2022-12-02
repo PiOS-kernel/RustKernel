@@ -57,13 +57,17 @@ fn mock_task(args: *mut u8) {
         );
     }
 
+
+    hprintln!("it's me, Luigi! {:#x}", ARGS_PTR as usize);
+
     assert_eq!(args, ARGS_PTR);
+
     let var = accumulate(0);
     assert_eq!(var, 4950);
     loop {}
 }
 
-/*#[test_case]
+#[test_case]
 fn test_task_switch() {
     // the waiting queue is emptied
     while !WAITING_QUEUE.empty() {
@@ -78,4 +82,4 @@ fn test_task_switch() {
         RUNNING = Some(Box::new(TaskTCB::new(None, 0)));
         task_switch();
     };
-}*/
+}
