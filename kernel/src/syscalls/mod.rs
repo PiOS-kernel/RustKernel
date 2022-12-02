@@ -25,7 +25,7 @@ The function simply invokes the kernel to request the given service.
 */
 #[no_mangle]
 #[naked]
-pub extern "C" fn create_task(code: fn(*mut u8)->!, args: *mut u8, priority: u8) {
+pub fn create_task(code: extern "C" fn(*mut u8), args: *mut u8, priority: usize) {
     unsafe {
         asm!(
             "svc {syscall_id}",
@@ -46,13 +46,14 @@ pub(crate) fn unknownService(){
     }
  }
 
+
 /*
-This is the function used by the kernel to create a new task
+- kcreate_task(), brief description:
+    This is the function used by the kernel to create a new task
+    The functions pushes onto the task's empty stack the initial values
+    for its register. Then the task is added to the tasks queue.
 
-The functions pushes onto the task's empty stack the initial values
-for its register. Then the task is added to the tasks queue.
-
-The registers layout for the cortex-M4 processor is the following:
+- Registers layout for the cortex-M4 processor:
 
     r0  function argument 1 / general purpose
     r1  function argument 2 / general purpose
@@ -73,36 +74,56 @@ The registers layout for the cortex-M4 processor is the following:
     r14 link register
     r15 program counter
 
-    TODO: address the need to initialize and store control registers
+- Task initialization:
+
+    When a task is prehempted by the SysTick interrupt handler, its 
+    program counter is saved in the link register. Then the SysTick 
+    handler calls the routine that performs the context switch, which
+    pushes r0 through r12, and r14 (link register) onto the stack.
+        
+    Therefore a new task's stack needs to be initialized by pushing 
+    the necessary values for registers r0-r12 and for the link register, 
+    which should hold the memory address of the first instruction to be
+    executed by the task. 
 */
 #[no_mangle]
-pub(crate) fn kcreate_task(code: fn(*mut u8)->!, args: *mut u8, priority: u8) {
+pub fn kcreate_task(code: fn(*mut u8), args: *mut u8, priority: usize) {
     // The task's TCB is created
-    let mut tcb = TaskTCB::new(None, priority);
+    let mut tcb = TaskTCB::new(None, priority); 
+
+    // Registers r1 - r3 are pushed onto the stack 
+    // and 0 initialized.
+
+    let zeros: [usize; 12] = [0; 12];
+    // 3 * 4 bytes are copied onto the stack, where 4 bytes is the size of 
+    // one register.
+
+    // The memory address of the first item in the array is given as source
+    tcb.stack_push(&zeros[0] as *const usize as *const u8, size_of::<usize>() * 3);
 
     // The pointer to the arguments is saved in register r0.
     // The ARM ABI specifies that the first 4 32-bit function arguments
     // should be put in registers r0-r3.
+
     tcb.stack_push(&args as *const *mut u8 as *const u8, size_of::<*mut u8>());
 
 
-    // The following 11 general purpose registers, the stack pointer and
-    // the link register are 0-filled. The stack pointer will be
-    // initialized the first time the task is executed.
+    // The link register is pushed onto the stack, and initialized to be 
+    // the memory address of the first instruction executed by the task
+    tcb.stack_push(&code as *const fn(*mut u8) as *mut u8, size_of::<*mut u8>());
 
-    let zeros: [usize; 14] = [0; 14];
-    // 14 * 4 bytes are copied to the stack, where 4 bytes is the size of 
+
+    // Registers r4 through r12 are pushed onto the stack and 
+    // 0-initialized.
+    // 9 * 4 bytes are copied to the stack, where 4 bytes is the size of 
     // one register.
-    // The memory address of the first item in the array is given as source
-    tcb.stack_push(&zeros[0] as *const usize as *const u8, size_of::<usize>() * 14);
+    tcb.stack_push(&zeros[0] as *const usize as *const u8, size_of::<usize>() * 9);
 
-
-    // The program counter is initialized as the pointer to the task's code
-    tcb.stack_push(&code as *const fn(*mut u8)->! as *mut u8, size_of::<*mut u8>());
-
+    let mut heap_allocated_tcb = Box::new(tcb);
+    heap_allocated_tcb.stp = unsafe{ heap_allocated_tcb.stack_end().sub(14 * 4) };
 
     // The task is inserted into the tasks queue
-    WAITING_QUEUE.enqueue(Box::new(tcb));
+    WAITING_QUEUE.enqueue(heap_allocated_tcb);
 }
 
 //this function does the context switch for a task
@@ -112,21 +133,52 @@ pub(crate) fn kcreate_task(code: fn(*mut u8)->!, args: *mut u8, priority: u8) {
 #[no_mangle]
 #[cfg(target_arch = "arm")]
 pub unsafe fn task_switch() {
+    use core::ptr;
+
+    let running_ptr = match &mut RUNNING {
+        Some(tcb) => {
+            &mut **tcb
+        }
+        None => {
+            ptr::null_mut()
+        }
+    };
 
     disable();                           //disable all interrupts
     asm!(
-        //SAVE: 
-        "STMFD r13!, {{r0-r12, r14}}",   //store register's values in current task's stack  
-        "LDR r1, [r0, #0]",              // r1<-runningPROC                   
-        "STR r13, [r1, #1]",             // running->ksp = sp                
-        //FIND:
-        "BL schedule",                   // call schedule()                  
-        //RESUME:
-        //arm convention save in r0 the return value of schedule which is the pointer to the new running task
-        "LDR r1, [r0, #0]",              // r1<-new running PROC
-        "LDR r13, [r1, #1]",             // restore running->ksp
-        "LDMFD r13!, {{r0-r12, r14}}",   // load new task's stack in the registers
-        "MOV pc, lr",                    // return             
-        in("r0") RUNNING,                //initialize r0 with the running pointer
+        /*
+        SAVE:
+        At this point, r0 holds the pointer to the running task. Because
+        the first 32 bits of the TaskTCB struct are dedicated to the stack
+        pointer, the value of r13 will be saved at that memory location before
+        context switching
+        */
+        // The task's registers are saved onto the stack
+        "STMDB r13!, {{r4-r12, r14}}",   
+        // the stack pointer is loaded in r13 (sp register)               
+        "STR r13, [r0]",   
+
+        // the scheduling algorithm determines wich task should be executed
+        "BL schedule",
+
+        /*
+        RESUME:
+        according to the ARM ABI convention the return value of 'schedule()',
+        which is the pointer to the new running task, is saved in register r0
+        */
+        // the first struct field is the SP
+        "LDR r13, [r0, #0]",
+        // the task's registers are popped from the stack
+        "LDMIA r13!, {{r4-r12, r14}}",
+        // The CONTROL register is configured to return to user mode
+        "MRS r0, CONTROL",
+        "ORR r0, r0, #0x0001",
+        "MSR CONTROL, r0",                   // enter User mode
+        "ISB",
+        // The lr now hold the return address to the task code
+        "MOV pc, lr",     
+
+        //initialize r0 with the running pointer
+        in("r0") running_ptr,
     );  
 }
