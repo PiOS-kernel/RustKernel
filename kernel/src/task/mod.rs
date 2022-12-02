@@ -12,13 +12,24 @@ const STACK_SIZE: usize = 1024; //size of the stack for every task
 
 //global variables
 pub const MAX_PRIORITY: u8 = 10; //max priority and size of the priority queues array
-pub static mut RUNNING: *mut TaskTCB = ptr::null_mut(); //pointer to the current running task's TaskTCB
 
-//definition of the Task Control Block
+/*
+RUNNING is the pointer to the currently executing task. It is 
+wrapped into an Option type because the Box type can never be
+null.
+*/
+pub static mut RUNNING: Option<Box<TaskTCB>> = None; 
 
+// Definition of the Task Control Block.
+// 'repr(C)' is added to ensure that the struct's fields are stored
+// in the order they appear in the definition: 
+//  - bytes [0 - 3]: stp
+//  - bytes [4 - 7]: priority
+//  ... etc
+#[repr(C)]
 pub struct TaskTCB {
     pub stp: *mut u8,            //stack pointer
-    pub priority: u8,            //priority of the task
+    pub priority: usize,            //priority of the task
     pub stack: [u8; STACK_SIZE], //stack associated to the task
     pub next: TcbBlock,          //reference to the next Task_TCB
 }
@@ -26,7 +37,7 @@ pub struct TaskTCB {
 impl TaskTCB {
     //constructor for a TaskTCB that return an instance of a TaskTCB
     //with the associating the parameters to the corresponding fields
-    pub fn new(n: TcbBlock, p: u8) -> Self {
+    pub fn new(n: TcbBlock, p: usize) -> Self {
         let mut tcb = Self {
             next: n,
             priority: p,
@@ -36,29 +47,33 @@ impl TaskTCB {
 
         // The stack pointer is initialized to the start address of the task's
         // stack
-        tcb.stp = tcb.stack_base();
+        tcb.stp = unsafe{ (&mut tcb.stack[0] as *mut u8).add(STACK_SIZE) };
         tcb
     }
 
-    // utility method to compute the base address of the task's stack
-    pub fn stack_base(&self) -> *mut u8 {
-        unsafe { &self.stack[0] as *const u8 as *mut u8 }
+    // utility method that computes the start address of the stack
+    pub fn stack_start(&self) -> *mut u8 {
+        &self.stack[0] as *const u8 as *mut u8
+    }
+
+    // utility method that computes the end address of the stack
+    pub fn stack_end(&self) -> *mut u8 {
+        unsafe { (&self.stack[0] as *const u8).add(STACK_SIZE) as *mut u8 }
     }
 
     // utility method to push values onto the task's stack
     pub fn stack_push(&mut self, src: *const u8, size: usize) {
         // Check whether there is room left on the stack
-        if self.stp as usize > (self.stack_base() as usize) + STACK_SIZE {
+        if (self.stp as usize) < (&self.stack[0] as *const u8 as usize) {
             panic!(); // execution is halted
         }
 
         // The data is stored onto the stack and the stack pointer
-        // is incremented.
+        // is decremented.
+        self.stp = unsafe{ self.stp.sub(size) };
         unsafe {
-            let base = (&mut self.stack[0]) as *mut u8;
             memcpy(src, self.stp, size);
         }
-        self.stp = unsafe{ self.stp.add(size) };
     }
 }
 
@@ -174,21 +189,21 @@ impl Queue {
 pub unsafe fn schedule() -> *mut TaskTCB {
     if !WAITING_QUEUE.empty() {
         //take the first tasks in the queue
-        let task = WAITING_QUEUE.dequeue();
+        let mut tcb = WAITING_QUEUE.dequeue().unwrap();
+        let ptr = &mut *tcb as *mut TaskTCB;
+        RUNNING = Some(tcb);
 
-        //set RUNNING accordingly
-        match task {
-            Some(mut task) => {
-                // Casting a read only reference to a mutable pointer.
-                // We now have 2 mutable references/pointers to this task. One inside
-                // 
-                RUNNING = task.borrow_mut();
+        ptr
+    } else {
+        match &mut RUNNING {
+            Some(tcb) => {
+                &mut **tcb
+            }   
+            None => {
+                ptr::null_mut()
             }
-            // No task is found inside the queue 
-            None => {}
         }
     }
-    RUNNING
 }
 
 // Iterator implmentation for the `QueueIterator` type
