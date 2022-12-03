@@ -25,7 +25,7 @@ The function simply invokes the kernel to request the given service.
 */
 #[no_mangle]
 #[naked]
-pub extern "C" fn create_task(code: fn(*mut u8)->!, args: *mut u8, priority: u8) {
+pub extern "C" fn create_task(code: fn(*mut u8), args: *mut u8, priority: u8) {
     unsafe {
         asm!(
             "svc {syscall_id}",
@@ -39,7 +39,6 @@ pub extern "C" fn create_task(code: fn(*mut u8)->!, args: *mut u8, priority: u8)
 #[no_mangle]
 pub(crate) fn unknownService(){
     loop {
-        hprintln!("SVC called unknown service");
         for i in 0x0..0xFFFFF {
             // busy waiting
         }
