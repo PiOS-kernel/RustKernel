@@ -18,23 +18,18 @@ fn test_create_task() {
 
     let stack_top = created_task.stp as *mut usize;
 
-    // The first 9 words from the top of the stack (registers r4-r12) should be 0-filled
-    for i in 0..9 {
+
+    // First we should find the task's arguments
+    assert_eq!(unsafe{ *stack_top }, ARGS_PTR as usize);
+
+    // The following 12 words from the top of the stack (registers r1-r12) should be 0-filled
+    for i in 1..13 {
         let reg_ptr = unsafe{ stack_top.add(i) };
         assert_eq!(unsafe{ *reg_ptr }, 0);
     }
 
     // Then we should find the link register
-    assert_eq!(unsafe{ *stack_top.add(9) }, mock_task as usize);
-
-    // Then, we should find the task's arguments
-    assert_eq!(unsafe{ *stack_top.add(10) }, ARGS_PTR as usize);
-
-    // Finally we should find registers r1 - r3, 0 filled
-    for i in 11..14 {
-        let reg_ptr = unsafe{ stack_top.add(i) };
-        assert_eq!(unsafe{ *reg_ptr }, 0);
-    }
+    assert_eq!(unsafe{ *stack_top.add(13) }, mock_task as usize);
 }
 
 fn accumulate(base: usize) -> usize {
@@ -49,7 +44,7 @@ fn accumulate(base: usize) -> usize {
     acc
 }
 
-fn mock_task(args: *mut u8) {
+extern "C" fn mock_task(args: *mut u8) {
     // pop task arguments
     unsafe {
         asm!(
