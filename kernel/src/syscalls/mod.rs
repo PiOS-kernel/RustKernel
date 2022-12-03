@@ -176,6 +176,12 @@ pub unsafe fn task_switch() {
     );  
 }
 
+/*
+This function serves as prologue to task_switch(), and it
+returns pointer to the currently running task. It is needed
+to correctly handle return from task_switch to the caller.
+*/
+
 #[no_mangle]
 #[cfg(target_arch = "arm")]
 pub unsafe extern "C" fn task_switch_prologue() {
@@ -189,6 +195,8 @@ pub unsafe extern "C" fn task_switch_prologue() {
             ptr::null_mut()
         }
     };
+
+    // The pointer is saved into r0, the return register
     asm!(
         "",
         inout("r0") running_ptr,

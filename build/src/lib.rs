@@ -23,6 +23,7 @@ fn SysTick(){
         if systick_counter ==  TASK_TIME_UNIT{
             systick_counter = 0;
             task_switch();
+            asm!("POP {{pc}}");
         }
     }
 }

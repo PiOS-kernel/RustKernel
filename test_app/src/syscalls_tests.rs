@@ -44,7 +44,7 @@ fn accumulate(base: usize) -> usize {
     acc
 }
 
-extern "C" fn mock_task(args: *mut u8) {
+fn mock_task(args: *mut u8) {
     // pop task arguments
     unsafe {
         asm!(
@@ -76,5 +76,6 @@ fn test_task_switch() {
     unsafe {
         RUNNING = Some(Box::new(TaskTCB::new(None, 0)));
         task_switch();
+        asm!("POP {{pc}}");
     };
 }
