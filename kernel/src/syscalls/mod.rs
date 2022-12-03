@@ -143,12 +143,20 @@ pub unsafe fn task_switch() {
         pointer, the value of r13 will be saved at that memory location before
         context switching
         */
+        // If there is currently no running task, skip the SAVE part and
+        // branch to the scheduler
+        "CMP r0, #0",
+        "BEQ 2f",
         // The task's registers are saved onto the stack
         "STMDB r13!, {{r4-r12, r14}}",   
         // the stack pointer is loaded in r13 (sp register)               
-        "STR r13, [r0]",   
+        "STR r13, [r0]",
 
-        // the scheduling algorithm determines wich task should be executed
+        /*
+        SCHEDULING:
+        the scheduling algorithm determines wich task should be executed
+        */
+        "2:",
         "STMDB r13!, {{r14}}",
         "BL schedule",
         "LDMIA r13!, {{r14}}",
@@ -194,7 +202,7 @@ pub unsafe extern "C" fn task_switch_prologue() {
             &mut **tcb
         }
         None => {
-            ptr::null_mut()
+            0 as *mut TaskTCB
         }
     };
 

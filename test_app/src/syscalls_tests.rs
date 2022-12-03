@@ -45,12 +45,14 @@ fn accumulate(base: usize) -> usize {
 }
 
 fn mock_task(args: *mut u8) {
-    hprintln!("it's me, Luigi! {:#x}", ARGS_PTR as usize);
+    hprintln!("\nIt's me, Mario!");
 
     assert_eq!(args, ARGS_PTR);
 
     let var = accumulate(0);
     assert_eq!(var, 4950);
+    
+    loop {}
 }
 
 /*
@@ -71,7 +73,6 @@ fn test_task_switch() {
 
     // context switch
     unsafe {
-        RUNNING = Some(Box::new(TaskTCB::new(None, 0)));
         task_switch();
         asm!("POP {{pc}}");
     };
