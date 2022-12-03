@@ -124,22 +124,18 @@ pub fn kcreate_task(code: fn(*mut u8), args: *mut u8, priority: usize) {
 //calls the schedule function
 //and loads the new task's stack in the registers
 #[no_mangle]
+#[naked]
 #[cfg(target_arch = "arm")]
-#[inline(always)]
 pub unsafe fn task_switch() {
-    use core::ptr;
-
-    let running_ptr = match &mut RUNNING {
-        Some(tcb) => {
-            &mut **tcb
-        }
-        None => {
-            ptr::null_mut()
-        }
-    };
-
-    disable();                           //disable all interrupts
     asm!(
+        // Interrupts are disabled
+        "CPSID i",
+        // The 'Rust' part of this function is called, to get the pointer to
+        // the running task
+        "STMDB r13!, {{r14}}",
+        "BL task_switch_prologue",
+        "LDMIA r13!, {{r14}}",
+
         /*
         SAVE:
         At this point, r0 holds the pointer to the running task. Because
@@ -153,7 +149,9 @@ pub unsafe fn task_switch() {
         "STR r13, [r0]",   
 
         // the scheduling algorithm determines wich task should be executed
+        "STMDB r13!, {{r14}}",
         "BL schedule",
+        "LDMIA r13!, {{r14}}",
 
         /*
         RESUME:
@@ -164,15 +162,35 @@ pub unsafe fn task_switch() {
         "LDR r13, [r0, #0]",
         // the task's registers are popped from the stack
         "LDMIA r13!, {{r0-r12}}",
+
+        // Interrupts are enabled again
+        "CPSIE i",
         // The register that tracks the current privilege level of the CPU
         // is modified to return to user mode
         "MOV r0, #1",
         "MSR basepri, r0",
         "ISB",
         // At the top of the stack there is the return address to the task code
-        "POP {{pc}}",     
-
-        //initialize r0 with the running pointer
-        in("r0") running_ptr,
+        "MOV pc, lr",     
+        options(noreturn)
     );  
+}
+
+#[no_mangle]
+#[cfg(target_arch = "arm")]
+pub unsafe extern "C" fn task_switch_prologue() {
+    use core::ptr;
+
+    let mut running_ptr = match &mut RUNNING {
+        Some(tcb) => {
+            &mut **tcb
+        }
+        None => {
+            ptr::null_mut()
+        }
+    };
+    asm!(
+        "",
+        inout("r0") running_ptr,
+    );
 }
