@@ -51,9 +51,14 @@ fn mock_task(args: *mut u8) {
 
     let var = accumulate(0);
     assert_eq!(var, 4950);
-    loop {}
 }
 
+/*
+This test does not run to completion because it hands control to
+'mock_task', therefore it should not be run together with other tests
+*/
+
+/*
 #[test_case]
 fn test_task_switch() {
     // the waiting queue is emptied
@@ -71,3 +76,4 @@ fn test_task_switch() {
         asm!("POP {{pc}}");
     };
 }
+*/
