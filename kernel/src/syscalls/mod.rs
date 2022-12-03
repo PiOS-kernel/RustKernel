@@ -167,9 +167,11 @@ pub unsafe fn task_switch() {
         "CPSIE i",
         // The register that tracks the current privilege level of the CPU
         // is modified to return to user mode
+        "STMDB r13!, {{r0}}",
         "MOV r0, #1",
         "MSR basepri, r0",
         "ISB",
+        "LDMIA r13!, {{r0}}",
         // At the top of the stack there is the return address to the task code
         "MOV pc, lr",     
         options(noreturn)

@@ -45,14 +45,6 @@ fn accumulate(base: usize) -> usize {
 }
 
 fn mock_task(args: *mut u8) {
-    // pop task arguments
-    unsafe {
-        asm!(
-            "LDMIA r13!, {{r0-r3}}"
-        );
-    }
-
-
     hprintln!("it's me, Luigi! {:#x}", ARGS_PTR as usize);
 
     assert_eq!(args, ARGS_PTR);
