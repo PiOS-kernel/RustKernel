@@ -16,11 +16,15 @@ use cortex_m_rt::{entry, exception};
 use cortex_m_semihosting::{hprint, hprintln};
 use kernel::{kernel_init};
 
+// 32KB in the .data section are dedicated to the heap
+static mut HEAP_MEM: [u8; 0x8000] = [0; 0x8000];
+
 
 #[entry]
 fn _start() -> ! {
     // The kernel is initialized
-    kernel_init(120000);    
+    let heap_start = unsafe{ &HEAP_MEM[0] as *const u8 as usize };
+    kernel_init(heap_start, 0x8000, 120000);    
     
     #[cfg(test)]
     test_main();
