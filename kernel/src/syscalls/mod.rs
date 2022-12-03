@@ -175,7 +175,7 @@ pub unsafe fn task_switch() {
         "ORR r0, r0, #0x0001",
         "MSR CONTROL, r0",                   // enter User mode
         "ISB",
-        // The lr now hold the return address to the task code
+        // The lr now holds the return address to the task code
         "MOV pc, lr",     
 
         //initialize r0 with the running pointer
