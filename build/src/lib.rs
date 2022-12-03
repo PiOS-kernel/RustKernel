@@ -21,11 +21,8 @@ fn SysTick(){
     unsafe{ 
         systick_counter += 1;
         if systick_counter ==  TASK_TIME_UNIT{
-            task_switch();
-            unsafe{
-                asm!("POP {{PC}}");
-            }
             systick_counter = 0;
+            task_switch();
         }
     }
 }

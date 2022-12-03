@@ -90,33 +90,27 @@ pub fn kcreate_task(code: fn(*mut u8), args: *mut u8, priority: usize) {
     // The task's TCB is created
     let mut tcb = TaskTCB::new(None, priority); 
 
-    // Registers r1 - r3 are pushed onto the stack 
-    // and 0 initialized.
-
-    let zeros: [usize; 12] = [0; 12];
-    // 3 * 4 bytes are copied onto the stack, where 4 bytes is the size of 
-    // one register.
-
-    // The memory address of the first item in the array is given as source
-    tcb.stack_push(&zeros[0] as *const usize as *const u8, size_of::<usize>() * 3);
-
-    // The pointer to the arguments is saved in register r0.
-    // The ARM ABI specifies that the first 4 32-bit function arguments
-    // should be put in registers r0-r3.
-
-    tcb.stack_push(&args as *const *mut u8 as *const u8, size_of::<*mut u8>());
-
 
     // The link register is pushed onto the stack, and initialized to be 
     // the memory address of the first instruction executed by the task
     tcb.stack_push(&code as *const fn(*mut u8) as *mut u8, size_of::<*mut u8>());
 
 
-    // Registers r4 through r12 are pushed onto the stack and 
+    // Registers r1 through r12 are pushed onto the stack and 
     // 0-initialized.
-    // 9 * 4 bytes are copied to the stack, where 4 bytes is the size of 
+    // 12 * 4 bytes are copied to the stack, where 4 bytes is the size of 
     // one register.
-    tcb.stack_push(&zeros[0] as *const usize as *const u8, size_of::<usize>() * 9);
+
+    let zeros: [usize; 12] = [0; 12];
+    // The memory address of the first item in the array is given as source
+    tcb.stack_push(&zeros[0] as *const usize as *const u8, size_of::<usize>() * 12);
+
+
+    // The pointer to the arguments is saved in register r0.
+    // The ARM ABI specifies that the first 4 32-bit function arguments
+    // should be put in registers r0-r3.
+
+    tcb.stack_push(&args as *const *mut u8 as *const u8, size_of::<*mut u8>());
 
     let mut heap_allocated_tcb = Box::new(tcb);
     heap_allocated_tcb.stp = unsafe{ heap_allocated_tcb.stack_end().sub(14 * 4) };
@@ -131,6 +125,7 @@ pub fn kcreate_task(code: fn(*mut u8), args: *mut u8, priority: usize) {
 //and loads the new task's stack in the registers
 #[no_mangle]
 #[cfg(target_arch = "arm")]
+#[inline(always)]
 pub unsafe fn task_switch() {
     use core::ptr;
 
@@ -168,14 +163,14 @@ pub unsafe fn task_switch() {
         // the first struct field is the SP
         "LDR r13, [r0, #0]",
         // the task's registers are popped from the stack
-        "LDMIA r13!, {{r4-r12, r14}}",
-        // The CONTROL register is configured to return to user mode
-        "MRS r0, CONTROL",
-        "ORR r0, r0, #0x0001",
-        "MSR CONTROL, r0",                   // enter User mode
+        "LDMIA r13!, {{r0-r12}}",
+        // The register that tracks the current privilege level of the CPU
+        // is modified to return to user mode
+        "MOV r0, #1",
+        "MSR basepri, r0",
         "ISB",
-        // The lr now holds the return address to the task code
-        "MOV pc, lr",     
+        // At the top of the stack there is the return address to the task code
+        "POP {{pc}}",     
 
         //initialize r0 with the running pointer
         in("r0") running_ptr,
