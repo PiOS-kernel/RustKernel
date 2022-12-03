@@ -39,7 +39,6 @@ pub fn create_task(code: fn(*mut u8), args: *mut u8, priority: usize) {
 #[no_mangle]
 pub(crate) fn unknownService(){
     loop {
-        hprintln!("SVC called unknown service");
         for i in 0x0..0xFFFFF {
             // busy waiting
         }
