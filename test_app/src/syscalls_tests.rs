@@ -1,69 +1,85 @@
-use core::borrow::BorrowMut;
+use core::arch::asm;
 
 use cortex_m_semihosting::hprintln;
-use kernel::{syscalls::{create_task, task_switch}, WAITING_QUEUE, task::{TaskTCB, RUNNING}};
+use kernel::syscalls::{create_task, task_switch, kcreate_task};
+use kernel::{WAITING_QUEUE};
+use kernel::task::{TaskTCB, RUNNING};
 use alloc::boxed::Box;
 
-fn foo(pippo : *mut u8) -> ! {
-    loop {
-        
-    }
-}
- /*
+const ARGS_PTR: *mut u8 = 123 as *mut u8;
+
+
 #[test_case]
 fn test_create_task() {
-    let args_ptr = 0;
-    create_task(foo, unsafe{ args_ptr as *mut u8 }, 0);
+    create_task(mock_task, ARGS_PTR, 0);
     assert_eq!(WAITING_QUEUE.count_tasks(), 1);
 
     let mut created_task = WAITING_QUEUE.dequeue().unwrap();
-    // r0 should contain the pointer to the tasks arguments
-    let r0_ptr = unsafe{ &created_task.stack[0] as *const u8 as *const usize };
-    assert_eq!(unsafe{ *r0_ptr }, args_ptr);
-    
-    // registers r1 - r14 should be 0-filled
-    for i in 1..15 {
-        let reg_ptr = unsafe{ r0_ptr.add(i) };
+
+    let stack_top = created_task.stp as *mut usize;
+
+    // The first 9 words from the top of the stack (registers r4-r12) should be 0-filled
+    for i in 0..9 {
+        let reg_ptr = unsafe{ stack_top.add(i) };
         assert_eq!(unsafe{ *reg_ptr }, 0);
     }
 
-    // r15(pc) should contain the pointer to the task function
-    let r15_ptr = unsafe{ r0_ptr.add(15) };
-    assert_eq!(unsafe{ *r15_ptr }, foo as usize);
+    // Then we should find the link register
+    assert_eq!(unsafe{ *stack_top.add(9) }, mock_task as usize);
+
+    // Then, we should find the task's arguments
+    assert_eq!(unsafe{ *stack_top.add(10) }, ARGS_PTR as usize);
+
+    // Finally we should find registers r1 - r3, 0 filled
+    for i in 11..14 {
+        let reg_ptr = unsafe{ stack_top.add(i) };
+        assert_eq!(unsafe{ *reg_ptr }, 0);
+    }
 }
-*/
+
+fn accumulate(base: usize) -> usize {
+    let mut array: [usize; 100] = [0; 100];
+    let mut acc = base;
+    for i in (base + 1)..(base+100) {
+        array[i - base] = i;
+        assert_eq!(array[i], i);
+
+        acc += i;
+    }
+    acc
+}
+
+fn mock_task(args: *mut u8) {
+    // pop task arguments
+    unsafe {
+        asm!(
+            "LDMIA r13!, {{r0-r3}}"
+        );
+    }
+
+
+    hprintln!("it's me, Luigi! {:#x}", ARGS_PTR as usize);
+
+    assert_eq!(args, ARGS_PTR);
+
+    let var = accumulate(0);
+    assert_eq!(var, 4950);
+    loop {}
+}
+
 #[test_case]
 fn test_task_switch() {
-    //create 2 tasks 
-    let mut task2 = TaskTCB::new(None, 2);
-    let mut task1 = TaskTCB::new(None, 0);
+    // the waiting queue is emptied
+    while !WAITING_QUEUE.empty() {
+        WAITING_QUEUE.dequeue();
+    }
 
-    //add values to the task's stack
-    let mut buff: [u8; 5] = [1, 2, 3, 4, 5];
-    let src = (&mut buff) as *mut u8;
-    task2.stack_push(src, 5);
+    // a new task is created
+    kcreate_task(mock_task, ARGS_PTR, 0);
 
-    //add task2 to the waiting queue 
-    WAITING_QUEUE.enqueue(Box::new(task2));
-
-    //set task1 as the RUNNING task and call task_switch()
-    unsafe { 
-        RUNNING = task1.borrow_mut();
+    // context switch
+    unsafe {
+        RUNNING = Some(Box::new(TaskTCB::new(None, 0)));
         task_switch();
     };
-
-    //RUNNING should point to task2
-    unsafe { assert_eq!((*RUNNING).priority, 2) };
-
-    //WAITING_QUEUE should have only one task
-    assert_eq!(WAITING_QUEUE.count_tasks(), 1);
-
-}
-
-#[test_case]
-fn test_systick_handler() {
-    // systick initializatoin
-    
-
-    //loop { };
 }

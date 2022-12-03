@@ -11,6 +11,7 @@ pub mod utility_tests;
 
 extern crate alloc;
 use core::panic::PanicInfo;
+use cortex_m_rt::ExceptionFrame;
 use cortex_m_rt::{entry, exception};
 use cortex_m_semihosting::{hprint, hprintln};
 use kernel::{kernel_init};
@@ -36,7 +37,13 @@ pub fn panic(info: &PanicInfo) -> ! {
 
 #[exception]
 unsafe fn DefaultHandler(irqn: i16) {
-    hprintln!("Unhandled exception: IRQn = {}", irqn);
+    // hprintln!("Unhandled exception: IRQn = {}", irqn);
+}
+
+#[exception]
+unsafe fn HardFault(ef: &ExceptionFrame) -> ! {
+    hprintln!("\nHardFault, baby!");
+    loop {}
 }
 
 pub fn test_runner(tests: &[&dyn Testable]) {
