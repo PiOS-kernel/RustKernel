@@ -4,6 +4,7 @@ target
 *.exe
 *.pdb
 Cargo.lock
+test_app/.gdbinit
 
 # Added by cargo
 
