@@ -25,7 +25,7 @@ The function simply invokes the kernel to request the given service.
 */
 #[no_mangle]
 #[naked]
-pub fn create_task(code: fn(*mut u8), args: *mut u8, priority: usize) {
+pub extern "C" fn create_task(code: fn(*mut u8), args: *mut u8, priority: usize) {
     unsafe {
         asm!(
             "svc {syscall_id}",

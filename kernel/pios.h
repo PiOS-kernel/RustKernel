@@ -9,14 +9,12 @@
 
 #define MAX_PRIORITY 10
 
-extern const uint32_t HEAP_MEMORY;
+#define STACK_SIZE 4096
 
-void create_task(void (*code)(uint8_t*), uint8_t *args, uint8_t priority);
+void create_task(void (*code)(uint8_t*), uint8_t *args, size_t priority);
 
-uint32_t get_heap_addr(void);
+size_t get_addr(void);
 
-void heap_init_wrapper(size_t start_addr, size_t size);
+void kernel_init(uint32_t reload_value);
 
-void kernel_init(size_t heap_start, uint32_t reload_value);
-
-void prova(void);
+void task_switch_prologue(void);
