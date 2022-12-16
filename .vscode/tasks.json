@@ -59,5 +59,16 @@
             "problemMatcher": [],
             "group": "build"
         },
+        {
+            "label": "Cargo Test",
+            "type": "process",
+            "command": "cargo",
+            "args": ["test"],
+            "problemMatcher": [],
+            "group": "test",
+            "options": {
+                "cwd": "${workspaceFolder}/test_app"
+            }
+        },
     ]
 }

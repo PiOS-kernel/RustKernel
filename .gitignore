@@ -1,0 +1,18 @@
+target/**
+.cortex-debug.registers.state.json
+target
+*.exe
+*.pdb
+Cargo.lock
+.gdbinit
+
+# Added by cargo
+
+/target
+
+
+# Added by cargo
+#
+# already existing elements were commented out
+
+#/target
