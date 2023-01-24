@@ -1,4 +1,12 @@
-# PiOS Kernel
+# PiOS Rust Kernel
+
+This repository contains the code the the (incomplete) Rust implementation of our kernel. This implementation includes a Round-Robin scheduler and a dynamic memory allocator.
+
+Rust was the language initially chosen for PiOS. Although we found Rust's embedded echosystem to be mature, we noticed that the high level abstractions that the language implements were not being helpful to our goal, pushing us to think about the code in a way too distant from the underlying machine. While in most use cases such feature is a benefit, when implementing an operating system kernel, in our opinion, it is less appealing.
+
+We also found ourselves often working against the compiler in order to perform unsafe (but necessary) memory accesses.
+
+In general, we found that the tradeoff between programmer productivity and low level control provided by C is more suited to the task of writing a kernel.
 
 ## Project structure
 
